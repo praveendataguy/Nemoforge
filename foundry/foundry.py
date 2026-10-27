@@ -47,6 +47,8 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
     started = time.time()
     out_dir: Path = cfg.builds_dir / run.id
     out_dir.mkdir(parents=True, exist_ok=True)
+    if run.log_path is None:
+        run.log_path = out_dir / "events.jsonl"
 
     run.emit("architect", "Nemotron Ultra is designing the agent team", goal=goal)
     spec = _repair(architect.design(llm, goal, notes))
@@ -121,6 +123,7 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
     passed = last["train"] >= cfg.pass_threshold and (not holdout or last["holdout"] >= cfg.pass_threshold)
     run.emit("done", f"Built '{final.name}' v{final.version}: training {last['train']:.0%}, held-out {last['holdout']:.0%}", report=report, spec=final.model_dump())
     run.status = "passed" if passed else "below_target"
+    (out_dir / "status").write_text(run.status)
     return report
 
 

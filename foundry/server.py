@@ -4,13 +4,15 @@
 """
 from __future__ import annotations
 
+import hmac
 import json
+import os
 import threading
 import traceback
 from pathlib import Path
 from typing import Callable
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -21,6 +23,7 @@ from .foundry import build
 from .llm import LLM, NemotronRouter
 from .runtime import run_system
 from .spec import SystemSpec
+from .tools import _no_net_prefix
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 
@@ -28,6 +31,7 @@ WEB = Path(__file__).resolve().parent.parent / "web"
 llm_factory: Callable[[Run | None], LLM] = lambda run: NemotronRouter(run)
 
 app = FastAPI(title="Agent Foundry")
+registry.load(settings().builds_dir)
 
 
 class BuildRequest(BaseModel):
@@ -44,6 +48,13 @@ class DeployRequest(BaseModel):
     subnet_id: str = ""
     project_id: str = ""
     dry_run: bool = True
+
+
+def _guard(code: str | None) -> None:
+    """Builds spend Token Factory credits; a public demo can require an access code."""
+    expected = os.environ.get("AF_ACCESS_CODE", "")
+    if expected and not hmac.compare_digest(code or "", expected):
+        raise HTTPException(401, "access code required")
 
 
 def _build_dir(run_id: str) -> Path:
@@ -67,11 +78,14 @@ def config() -> dict:
         "tavily_key": bool(cfg.tavily_api_key),
         "pass_threshold": cfg.pass_threshold,
         "max_iterations": cfg.max_iterations,
+        "sandbox_no_network": bool(_no_net_prefix()),
+        "access_code": bool(os.environ.get("AF_ACCESS_CODE")),
     }
 
 
 @app.post("/api/builds")
-def start_build(req: BuildRequest) -> dict:
+def start_build(req: BuildRequest, x_access_code: str | None = Header(default=None)) -> dict:
+    _guard(x_access_code)
     run = registry.new("build", req.goal)
 
     def work() -> None:
@@ -113,14 +127,18 @@ async def stream(run_id: str) -> StreamingResponse:
 
 
 @app.post("/api/builds/{run_id}/invoke")
-def invoke(run_id: str, req: InvokeRequest) -> dict:
+def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(default=None)) -> dict:
+    _guard(x_access_code)
     spec = SystemSpec.load(_build_dir(run_id) / "spec.json")
     out = run_system(llm_factory(None), spec, req.input, settings())
     return out
 
 
 @app.post("/api/builds/{run_id}/deploy")
-def deploy(run_id: str, req: DeployRequest) -> dict:
+def deploy(run_id: str, req: DeployRequest, x_access_code: str | None = Header(default=None)) -> dict:
+    _guard(x_access_code)
+    if not req.dry_run and not os.environ.get("AF_ALLOW_DEPLOY"):
+        raise HTTPException(403, "live deploys from the web app are off; set AF_ALLOW_DEPLOY=1 or use the CLI")
     d = _build_dir(run_id)
     try:
         cmds = deployer.deploy(d, req.registry, req.subnet_id, req.project_id, dry_run=req.dry_run)

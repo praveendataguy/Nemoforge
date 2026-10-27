@@ -84,13 +84,17 @@ curl -X POST "$ENDPOINT_URL/invoke" -H "Authorization: Bearer $AF_ENDPOINT_TOKEN
   -H "Content-Type: application/json" -d '{"input": "..."}'
 ```
 
+### Host the Foundry itself
+
+The root `Dockerfile` packages the dashboard. Deploy it the same way (container port 8000). Set `AF_ACCESS_CODE` so visitors need a code before starting builds that spend your Token Factory credits. Live deploys from the web app stay off unless `AF_ALLOW_DEPLOY=1`.
+
 ## Tests
 
 ```bash
 pytest
 ```
 
-The unit tests use a scripted stand-in model to check the plumbing (JSON parsing, sandbox isolation, the runtime's tool loop and the build loop) without network access. Real builds always use Nemotron.
+The unit tests use a scripted stand-in model to check the plumbing (JSON parsing, sandbox isolation, the runtime's tool loop, the build loop, the web API, access codes and restoring builds after a restart) without network access. Real builds always use Nemotron.
 
 ## Project layout
 

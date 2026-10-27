@@ -136,7 +136,21 @@ const EXAMPLES = [
   "Turn messy meeting notes into a summary, a decision list and action items with owners and due dates.",
   "Check a job description for biased or exclusionary wording and suggest inclusive rewrites.",
 ];
-let current = null, rounds = [], source = null;
+let current = null, rounds = [], source = null, needCode = false;
+function headers() {
+  const h = { "Content-Type": "application/json" };
+  if (needCode) {
+    let c = ""; try { c = localStorage.getItem("af-code") || ""; } catch (e) {}
+    if (!c) { c = prompt("Access code for this demo") || ""; try { localStorage.setItem("af-code", c); } catch (e) {} }
+    h["X-Access-Code"] = c;
+  }
+  return h;
+}
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: headers(), body: JSON.stringify(body) });
+  if (r.status === 401) { try { localStorage.removeItem("af-code"); } catch (e) {} }
+  return r;
+}
 
 EXAMPLES.forEach(t => { const b = document.createElement("button"); b.className = "ghost"; b.textContent = t.split(",")[0].slice(0, 48) + "..."; b.title = t; b.onclick = () => $("goal").value = t; $("examples").append(b); });
 
@@ -144,7 +158,9 @@ async function loadConfig() {
   const c = await (await fetch("/api/config")).json();
   $("chips").innerHTML = ["nano", "super", "ultra"].map(t => `<span class="chip">${t}: ${esc(c.models[t].split("/").pop())}</span>`).join("")
     + `<span class="chip ${c.nebius_key ? "ok" : "no"}">Token Factory ${c.nebius_key ? "connected" : "key missing"}</span>`
-    + `<span class="chip ${c.tavily_key ? "ok" : "no"}">Tavily ${c.tavily_key ? "connected" : "key missing"}</span>`;
+    + `<span class="chip ${c.tavily_key ? "ok" : "no"}">Tavily ${c.tavily_key ? "connected" : "key missing"}</span>`
+    + `<span class="chip ${c.sandbox_no_network ? "ok" : "no"}">tool sandbox ${c.sandbox_no_network ? "offline" : "has network"}</span>`;
+  needCode = c.access_code;
 }
 
 async function loadHistory() {
@@ -236,7 +252,7 @@ async function watch(id) {
 $("buildBtn").onclick = async () => {
   const goal = $("goal").value.trim(); if (goal.length < 8) return $("goal").focus();
   $("buildBtn").disabled = true;
-  const r = await fetch("/api/builds", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ goal }) });
+  const r = await post("/api/builds", { goal });
   if (!r.ok) { $("buildBtn").disabled = false; return alert(await r.text()); }
   watch((await r.json()).id); loadHistory();
 };
@@ -244,7 +260,7 @@ $("buildBtn").onclick = async () => {
 $("tryBtn").onclick = async () => {
   const input = $("tryInput").value.trim(); if (!input) return;
   $("tryBtn").disabled = true; $("tryOut").innerHTML = `<p class="empty">Running the team on Nemotron...</p>`;
-  const r = await fetch(`/api/builds/${current}/invoke`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input }) });
+  const r = await post(`/api/builds/${current}/invoke`, { input });
   const j = await r.json(); $("tryBtn").disabled = false;
   if (!r.ok) return $("tryOut").innerHTML = `<pre>${esc(JSON.stringify(j))}</pre>`;
   $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${esc(t.agent)} · ${t.tier} · ${t.ms} ms · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
@@ -252,7 +268,7 @@ $("tryBtn").onclick = async () => {
 
 $("deployBtn").onclick = async () => {
   const registry = $("registry").value.trim(); if (!registry) return $("registry").focus();
-  const r = await fetch(`/api/builds/${current}/deploy`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ registry, subnet_id: $("subnet").value.trim(), dry_run: true }) });
+  const r = await post(`/api/builds/${current}/deploy`, { registry, subnet_id: $("subnet").value.trim(), dry_run: true });
   const j = await r.json(); $("deployOut").classList.remove("hidden");
   $("deployOut").textContent = r.ok ? j.commands.join("\n\n") : JSON.stringify(j);
 };
