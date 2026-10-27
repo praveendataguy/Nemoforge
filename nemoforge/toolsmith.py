@@ -10,7 +10,7 @@ from .llm import LLM, chat_json
 from .spec import ToolSpec
 from .tools import run_python_tool
 
-SYSTEM = """You are the Toolsmith in Agent Foundry. You write one small, correct Python tool.
+SYSTEM = """You are the Toolsmith in NemoForge. You write one small, correct Python tool.
 
 Rules:
 - Define `def run(<parameters>) -> dict | list | str | int | float` as the entry point.

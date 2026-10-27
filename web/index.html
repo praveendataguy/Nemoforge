@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent Foundry</title>
+<title>NemoForge</title>
 <style>
 :root {
   --bg: #0d0f0c; --panel: #151813; --panel2: #1b1f18; --line: #2a3026; --text: #e8ebe4; --muted: #9aa393;
@@ -87,7 +87,7 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
 </head>
 <body>
 <header>
-  <h1>Agent <span>Foundry</span></h1>
+  <h1>Nemo<span>Forge</span></h1>
   <div class="chips" id="chips"></div>
 </header>
 <main>
@@ -140,15 +140,15 @@ let current = null, rounds = [], source = null, needCode = false;
 function headers() {
   const h = { "Content-Type": "application/json" };
   if (needCode) {
-    let c = ""; try { c = localStorage.getItem("af-code") || ""; } catch (e) {}
-    if (!c) { c = prompt("Access code for this demo") || ""; try { localStorage.setItem("af-code", c); } catch (e) {} }
+    let c = ""; try { c = localStorage.getItem("nf-code") || ""; } catch (e) {}
+    if (!c) { c = prompt("Access code for this demo") || ""; try { localStorage.setItem("nf-code", c); } catch (e) {} }
     h["X-Access-Code"] = c;
   }
   return h;
 }
 async function post(url, body) {
   const r = await fetch(url, { method: "POST", headers: headers(), body: JSON.stringify(body) });
-  if (r.status === 401) { try { localStorage.removeItem("af-code"); } catch (e) {} }
+  if (r.status === 401) { try { localStorage.removeItem("nf-code"); } catch (e) {} }
   return r;
 }
 

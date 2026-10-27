@@ -1,4 +1,4 @@
-"""The blueprint Agent Foundry designs, tests, improves and deploys.
+"""The blueprint NemoForge designs, tests, improves and deploys.
 
 A SystemSpec is plain data (JSON on disk), so every build is inspectable and diffable
 between optimisation rounds.

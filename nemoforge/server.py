@@ -1,6 +1,6 @@
-"""Agent Foundry web app: start builds, watch them live, try the result, deploy it.
+"""NemoForge web app: start builds, watch them live, try the result, deploy it.
 
-    uvicorn foundry.server:app --port 8000
+    uvicorn nemoforge.server:app --port 8000
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from . import deploy as deployer
 from .config import settings
 from .events import Run, registry
-from .foundry import build
+from .forge import build
 from .llm import LLM, NemotronRouter
 from .runtime import run_system
 from .spec import SystemSpec
@@ -30,7 +30,7 @@ WEB = Path(__file__).resolve().parent.parent / "web"
 # Swappable so tests can run the app without network access.
 llm_factory: Callable[[Run | None], LLM] = lambda run: NemotronRouter(run)
 
-app = FastAPI(title="Agent Foundry")
+app = FastAPI(title="NemoForge")
 registry.load(settings().builds_dir)
 
 
@@ -52,7 +52,7 @@ class DeployRequest(BaseModel):
 
 def _guard(code: str | None) -> None:
     """Builds spend Token Factory credits; a public demo can require an access code."""
-    expected = os.environ.get("AF_ACCESS_CODE", "")
+    expected = os.environ.get("NF_ACCESS_CODE", "")
     if expected and not hmac.compare_digest(code or "", expected):
         raise HTTPException(401, "access code required")
 
@@ -79,7 +79,7 @@ def config() -> dict:
         "pass_threshold": cfg.pass_threshold,
         "max_iterations": cfg.max_iterations,
         "sandbox_no_network": bool(_no_net_prefix()),
-        "access_code": bool(os.environ.get("AF_ACCESS_CODE")),
+        "access_code": bool(os.environ.get("NF_ACCESS_CODE")),
     }
 
 
@@ -137,8 +137,8 @@ def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(d
 @app.post("/api/builds/{run_id}/deploy")
 def deploy(run_id: str, req: DeployRequest, x_access_code: str | None = Header(default=None)) -> dict:
     _guard(x_access_code)
-    if not req.dry_run and not os.environ.get("AF_ALLOW_DEPLOY"):
-        raise HTTPException(403, "live deploys from the web app are off; set AF_ALLOW_DEPLOY=1 or use the CLI")
+    if not req.dry_run and not os.environ.get("NF_ALLOW_DEPLOY"):
+        raise HTTPException(403, "live deploys from the web app are off; set NF_ALLOW_DEPLOY=1 or use the CLI")
     d = _build_dir(run_id)
     try:
         cmds = deployer.deploy(d, req.registry, req.subnet_id, req.project_id, dry_run=req.dry_run)

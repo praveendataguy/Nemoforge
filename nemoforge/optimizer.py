@@ -8,7 +8,7 @@ from .llm import LLM, chat_json
 from .spec import SystemSpec
 from .tools import BUILTINS, describe
 
-SYSTEM = """You are the Optimizer in Agent Foundry. A team of agents failed some of its tests.
+SYSTEM = """You are the Optimizer in NemoForge. A team of agents failed some of its tests.
 Find the ROOT CAUSE of each failure in the traces and fix the design, not the symptoms.
 
 You may: rewrite system prompts (be specific: add output formats, rules, examples),
@@ -66,7 +66,7 @@ def improve(llm: LLM, spec: SystemSpec, results: list[dict[str, Any]]) -> tuple[
     rewrite = {str(t.get("name")): str(t.get("note", "")) for t in data.get("rewrite_tools", []) or []}
     for t in tools:
         if t["name"] in rewrite:
-            t["code"] = ""  # blank code tells the Foundry to re-forge it
+            t["code"] = ""  # blank code tells NemoForge to re-forge it
             t["description"] += f" (Fix: {rewrite[t['name']]})" if rewrite[t["name"]] else ""
     update["tools"] = tools
     new_spec = SystemSpec.model_validate({**spec.model_dump(), **update})

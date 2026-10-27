@@ -2,13 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from foundry.config import Settings
-from foundry.events import registry
-from foundry.foundry import build
-from foundry.llm import parse_json
-from foundry.runtime import run_system
-from foundry.spec import SystemSpec
-from foundry.tools import call_tool, run_python_tool
+from nemoforge.config import Settings
+from nemoforge.events import registry
+from nemoforge.forge import build
+from nemoforge.llm import parse_json
+from nemoforge.runtime import run_system
+from nemoforge.spec import SystemSpec
+from nemoforge.tools import call_tool, run_python_tool
 
 from .fake_llm import SPEC, FakeLLM
 

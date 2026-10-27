@@ -1,6 +1,6 @@
-"""A scripted stand-in for Nemotron, used only to test Foundry plumbing offline.
+"""A scripted stand-in for Nemotron, used only to test NemoForge plumbing offline.
 
-It answers each Foundry role with a fixed, valid reply. It does not judge quality;
+It answers each NemoForge role with a fixed, valid reply. It does not judge quality;
 real builds always run on Nemotron via Nebius Token Factory.
 """
 from __future__ import annotations

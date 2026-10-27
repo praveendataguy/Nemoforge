@@ -2,14 +2,14 @@ import time
 
 from fastapi.testclient import TestClient
 
-from foundry import server
-from foundry.events import Registry
+from nemoforge import server
+from nemoforge.events import Registry
 
 from .fake_llm import FakeLLM
 
 
 def _client(tmp_path, monkeypatch):
-    monkeypatch.setenv("AF_BUILDS_DIR", str(tmp_path))
+    monkeypatch.setenv("NF_BUILDS_DIR", str(tmp_path))
     monkeypatch.setattr(server, "llm_factory", lambda run: FakeLLM())
     return TestClient(server.app)
 
@@ -41,7 +41,7 @@ def test_build_invoke_and_reload(tmp_path, monkeypatch):
 
 def test_access_code_and_deploy_guard(tmp_path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
-    monkeypatch.setenv("AF_ACCESS_CODE", "s3cret")
+    monkeypatch.setenv("NF_ACCESS_CODE", "s3cret")
     assert client.post("/api/builds", json={"goal": "check invoice totals"}).status_code == 401
     run = client.post("/api/builds", json={"goal": "check invoice totals"}, headers={"X-Access-Code": "s3cret"}).json()
     _wait(client, run["id"])

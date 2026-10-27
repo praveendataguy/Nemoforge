@@ -1,4 +1,4 @@
-"""Command line: `python -m foundry build "goal"`, `run`, `deploy`, `serve`."""
+"""Command line: `python -m nemoforge build "goal"`, `run`, `deploy`, `serve`."""
 from __future__ import annotations
 
 import argparse
@@ -10,7 +10,7 @@ from .config import settings
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="foundry", description="Agent Foundry: one sentence in, a tested agent team out.")
+    p = argparse.ArgumentParser(prog="nemoforge", description="NemoForge: one sentence in, a tested agent team out.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     b = sub.add_parser("build", help="design, test and improve an agent team for a goal")
@@ -29,7 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--project-id", default="")
     d.add_argument("--yes", action="store_true", help="actually run the commands (default prints them)")
 
-    s = sub.add_parser("serve", help="start the Agent Foundry web app")
+    s = sub.add_parser("serve", help="start the NemoForge web app")
     s.add_argument("--port", type=int, default=8000)
     s.add_argument("--host", default="127.0.0.1")
 
@@ -38,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "build":
         from .events import registry
-        from .foundry import build
+        from .forge import build
         from .llm import NemotronRouter
 
         run = registry.new("build", args.goal)
@@ -66,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "serve":
         import uvicorn
 
-        uvicorn.run("foundry.server:app", host=args.host, port=args.port)
+        uvicorn.run("nemoforge.server:app", host=args.host, port=args.port)
         return 0
     return 1
 

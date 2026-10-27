@@ -9,7 +9,7 @@ from .llm import LLM, chat_json
 from .runtime import run_system
 from .spec import EvalCase, SystemSpec
 
-DESIGN = """You are the Test Designer in Agent Foundry. Write an evaluation set for an AI system.
+DESIGN = """You are the Test Designer in NemoForge. Write an evaluation set for an AI system.
 
 Write {n} test cases a demanding user would actually send. Mix:
 - typical requests (about half),

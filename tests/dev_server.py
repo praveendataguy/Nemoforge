@@ -6,7 +6,7 @@ import time
 
 import uvicorn
 
-from foundry import server
+from nemoforge import server
 
 from .fake_llm import FakeLLM
 

@@ -1,7 +1,7 @@
 """Standalone server for ONE built agent system. This is what gets deployed to a
 Nebius Serverless Endpoint: the generic runtime plus the build's spec.json.
 
-    AF_SPEC=builds/<id>/spec.json uvicorn foundry.serve:app --port 8080
+    NF_SPEC=builds/<id>/spec.json uvicorn nemoforge.serve:app --port 8080
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from .llm import NemotronRouter
 from .runtime import run_system
 from .spec import SystemSpec
 
-SPEC_PATH = Path(os.environ.get("AF_SPEC", "spec.json"))
+SPEC_PATH = Path(os.environ.get("NF_SPEC", "spec.json"))
 spec = SystemSpec.load(SPEC_PATH)
 app = FastAPI(title=spec.name, description=spec.summary)
 
@@ -56,7 +56,7 @@ def home() -> str:
 <style>body{{font:16px system-ui;max-width:720px;margin:2rem auto;padding:0 16px}}textarea{{width:100%;height:8rem}}
 pre{{white-space:pre-wrap;background:#f4f4f2;padding:1rem;border-radius:8px}}</style>
 <h1>{e(spec.name.replace('_', ' '))}</h1><p>{e(spec.summary)}</p><ul>{agents}</ul>
-<p><small>Built by Agent Foundry · runs on NVIDIA Nemotron via Nebius Token Factory</small></p>
+<p><small>Built by NemoForge · runs on NVIDIA Nemotron via Nebius Token Factory</small></p>
 <textarea id=q placeholder="{e(spec.input_hint)}"></textarea><br><button id=go>Run</button><pre id=out></pre>
 <script>go.onclick=async()=>{{out.textContent='Running...';const r=await fetch('invoke',{{method:'POST',
 headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{input:q.value}})}});

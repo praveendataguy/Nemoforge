@@ -1,6 +1,6 @@
 """Tools agents can call: a few built-ins, plus Python tools the Toolsmith writes.
 
-Generated tool code never runs inside the Foundry process. Each call starts a fresh
+Generated tool code never runs inside NemoForge process. Each call starts a fresh
 `python -I` subprocess with a stripped environment (no API keys), a temp working dir,
 CPU/memory limits and a wall-clock timeout. On Linux, if `unshare` is allowed, the
 subprocess also gets no network.
@@ -127,7 +127,7 @@ sys.path.insert(0, ".")
 args = json.loads(sys.stdin.read() or "{}")
 import tool
 out = tool.run(**args)
-sys.stdout.write("\n__AF_RESULT__" + json.dumps(out, default=str))
+sys.stdout.write("\n__NF_RESULT__" + json.dumps(out, default=str))
 """
 
 
@@ -154,7 +154,7 @@ def _no_net_prefix() -> list[str]:
 
 
 def run_python_tool(code: str, args: dict[str, Any], timeout: int = 20) -> dict[str, Any]:
-    with tempfile.TemporaryDirectory(prefix="af-tool-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="nf-tool-") as tmp:
         with open(os.path.join(tmp, "tool.py"), "w") as f:
             f.write(code)
         env = {"PATH": "/usr/bin:/bin", "HOME": tmp, "PYTHONDONTWRITEBYTECODE": "1"}
@@ -172,8 +172,8 @@ def run_python_tool(code: str, args: dict[str, Any], timeout: int = 20) -> dict[
             )
         except subprocess.TimeoutExpired:
             return {"error": f"tool timed out after {timeout}s"}
-    if "__AF_RESULT__" in proc.stdout:
-        printed, _, payload = proc.stdout.rpartition("\n__AF_RESULT__")
+    if "__NF_RESULT__" in proc.stdout:
+        printed, _, payload = proc.stdout.rpartition("\n__NF_RESULT__")
         try:
             return {"result": json.loads(payload), **({"stdout": printed[-1000:]} if printed.strip() else {})}
         except json.JSONDecodeError:

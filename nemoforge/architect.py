@@ -5,7 +5,7 @@ from .llm import LLM, chat_json
 from .spec import SystemSpec
 from .tools import BUILTINS, describe
 
-SYSTEM = """You are the Architect in Agent Foundry. You design small, reliable teams of AI agents.
+SYSTEM = """You are the Architect in NemoForge. You design small, reliable teams of AI agents.
 
 Given a goal, design the SMALLEST team that does it well (usually 2-4 agents).
 Each agent has one clear job. Agents run in the order given in "pipeline"; each sees the
