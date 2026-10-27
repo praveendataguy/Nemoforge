@@ -1,6 +1,6 @@
 """Tools agents can call: a few built-ins, plus Python tools the Toolsmith writes.
 
-Generated tool code never runs inside NemoForge process. Each call starts a fresh
+Generated tool code never runs inside the NemoForge process. Each call starts a fresh
 `python -I` subprocess with a stripped environment (no API keys), a temp working dir,
 CPU/memory limits and a wall-clock timeout. On Linux, if `unshare` is allowed, the
 subprocess also gets no network.
