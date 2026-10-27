@@ -119,8 +119,8 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
     (out_dir / "history.json").write_text(json.dumps(history, indent=2, default=str))
     run.result = report
     passed = last["train"] >= cfg.pass_threshold and (not holdout or last["holdout"] >= cfg.pass_threshold)
-    run.status = "passed" if passed else "below_target"
     run.emit("done", f"Built '{final.name}' v{final.version}: training {last['train']:.0%}, held-out {last['holdout']:.0%}", report=report, spec=final.model_dump())
+    run.status = "passed" if passed else "below_target"
     return report
 
 

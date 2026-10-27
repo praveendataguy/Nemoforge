@@ -1,0 +1,16 @@
+[project]
+name = "agent-foundry"
+version = "0.1.0"
+description = "Describe a job in one sentence; get a tested, deployed team of NVIDIA Nemotron agents on Nebius."
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+dependencies = ["openai>=1.40", "httpx>=0.27", "fastapi>=0.110", "uvicorn[standard]>=0.29", "pydantic>=2.6"]
+
+[project.scripts]
+foundry = "foundry.cli:main"
+
+[tool.setuptools]
+packages = ["foundry"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -19,13 +19,14 @@ class Run:
     events: list[dict[str, Any]] = field(default_factory=list)
     usage: dict[str, dict[str, int]] = field(default_factory=dict)
     result: dict[str, Any] = field(default_factory=dict)
-    _waiters: list[asyncio.Queue] = field(default_factory=list, repr=False)
+    # (event loop, queue) per live dashboard stream; builds emit from worker threads.
+    _waiters: list[tuple[asyncio.AbstractEventLoop, asyncio.Queue]] = field(default_factory=list, repr=False)
 
     def emit(self, stage: str, message: str, **data: Any) -> None:
         event = {"seq": len(self.events), "t": time.time(), "stage": stage, "message": message, "data": data}
         self.events.append(event)
-        for q in list(self._waiters):
-            q.put_nowait(event)
+        for loop, q in list(self._waiters):
+            loop.call_soon_threadsafe(q.put_nowait, event)
         # Also print, so the CLI shows the same story as the dashboard.
         print(f"[{stage:>12}] {message}", flush=True)
 
@@ -49,7 +50,8 @@ class Run:
 
     async def stream(self):
         q: asyncio.Queue = asyncio.Queue()
-        self._waiters.append(q)
+        waiter = (asyncio.get_running_loop(), q)
+        self._waiters.append(waiter)
         try:
             for e in list(self.events):
                 yield e
@@ -63,7 +65,7 @@ class Run:
                 if e["seq"] >= seen:
                     yield e
         finally:
-            self._waiters.remove(q)
+            self._waiters.remove(waiter)
 
 
 class Registry:
