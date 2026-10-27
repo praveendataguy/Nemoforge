@@ -17,9 +17,11 @@ Write {n} test cases a demanding user would actually send. Mix:
 - at least one request the system should refuse or push back on, if any exist for this goal.
 Each case states, in "criteria", what a correct answer MUST do, concretely enough that a
 strict grader can decide pass/fail. Use "must_include" only for exact strings that any
-correct answer is certain to contain (often leave it empty).
+correct answer is certain to contain (often leave it empty). Never put the wording of a
+refusal or any phrase the system could not know in advance in "must_include"; describe it
+in "criteria" instead. Tag each case with "kind": "typical", "edge" or "refuse".
 
-JSON shape: {{"cases": [{{"id": "c1", "input": "...", "criteria": "...", "must_include": [], "must_not_include": []}}]}}"""
+JSON shape: {{"cases": [{{"id": "c1", "kind": "typical", "input": "...", "criteria": "...", "must_include": [], "must_not_include": []}}]}}"""
 
 JUDGE = """You are a strict grader. Decide whether the AI system's answer meets the criteria.
 Judge only against the criteria and the request; ignore style unless the criteria mention it.
@@ -36,6 +38,28 @@ def design_cases(llm: LLM, spec: SystemSpec, n: int) -> list[EvalCase]:
         c.setdefault("id", f"c{i + 1}")
         cases.append(EvalCase.model_validate(c))
     return cases
+
+
+def split(cases: list[EvalCase]) -> tuple[list[EvalCase], list[EvalCase]]:
+    """Hold out about a third of the cases, spread across kinds, keeping every kind in training."""
+    n_hold = len(cases) // 3 if len(cases) >= 3 else 0
+    groups: dict[str, list[EvalCase]] = {}
+    for c in cases:
+        groups.setdefault(c.kind, []).append(c)
+    held: list[EvalCase] = []
+    # Take the last case of each kind in turn, never a kind's only case.
+    while len(held) < n_hold:
+        took = False
+        for group in groups.values():
+            if len(held) < n_hold and len(group) > 1:
+                held.append(group.pop())
+                took = True
+        if not took:
+            break
+    if len(held) < n_hold:  # every kind has one case left: hold out from the largest kind
+        rest = [c for c in cases if c not in held]
+        held += rest[len(rest) - (n_hold - len(held)) :]
+    return [c for c in cases if c not in held], [c for c in cases if c in held]
 
 
 def grade(llm: LLM, case: EvalCase, answer: str) -> dict[str, Any]:
