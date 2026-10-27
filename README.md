@@ -67,6 +67,14 @@ python -m nemoforge build "Turn messy meeting notes into a summary, decisions an
 python -m nemoforge run <build-id> "notes: ..." --trace
 ```
 
+### Keep costs down
+
+Every model call is priced per tier (approximate list prices, override with `NF_PRICE_<TIER>_IN` / `_OUT` in USD per 1M tokens), and the dashboard shows the running cost of each build. A build stops at its budget (default $0.50, `NF_BUDGET_USD` or `--budget`) and keeps the best version so far. Lite mode (`--lite` or the dashboard checkbox) sends Ultra's jobs to Super, which is roughly 3x cheaper.
+
+```bash
+python -m nemoforge build "..." --lite --cases 4 --rounds 2 --budget 0.10   # a cheap first run
+```
+
 ### Deploy a build to Nebius
 
 Prerequisites: the [Nebius CLI](https://docs.nebius.com/cli) configured for your project, Docker, a Nebius container registry and a subnet ID.

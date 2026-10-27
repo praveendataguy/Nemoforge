@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import dataclasses
 import hmac
 import json
 import os
@@ -17,7 +18,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from . import deploy as deployer
-from .config import settings
+from .config import Settings, settings
 from .events import Run, registry
 from .forge import build
 from .llm import LLM, NemotronRouter
@@ -28,7 +29,7 @@ from .tools import _no_net_prefix
 WEB = Path(__file__).resolve().parent.parent / "web"
 
 # Swappable so tests can run the app without network access.
-llm_factory: Callable[[Run | None], LLM] = lambda run: NemotronRouter(run)
+llm_factory: Callable[[Run | None, Settings], LLM] = lambda run, cfg: NemotronRouter(run, cfg)
 
 app = FastAPI(title="NemoForge")
 registry.load(settings().builds_dir)
@@ -37,6 +38,8 @@ registry.load(settings().builds_dir)
 class BuildRequest(BaseModel):
     goal: str = Field(min_length=8, max_length=2000)
     notes: str = Field(default="", max_length=4000)
+    lite: bool = False
+    budget_usd: float | None = Field(default=None, ge=0.01, le=20)
 
 
 class InvokeRequest(BaseModel):
@@ -78,6 +81,8 @@ def config() -> dict:
         "tavily_key": bool(cfg.tavily_api_key),
         "pass_threshold": cfg.pass_threshold,
         "max_iterations": cfg.max_iterations,
+        "budget_usd": cfg.budget_usd,
+        "lite": cfg.lite,
         "sandbox_no_network": bool(_no_net_prefix()),
         "access_code": bool(os.environ.get("NF_ACCESS_CODE")),
     }
@@ -87,10 +92,12 @@ def config() -> dict:
 def start_build(req: BuildRequest, x_access_code: str | None = Header(default=None)) -> dict:
     _guard(x_access_code)
     run = registry.new("build", req.goal)
+    cfg = settings()
+    cfg = dataclasses.replace(cfg, lite=req.lite or cfg.lite, budget_usd=req.budget_usd or cfg.budget_usd)
 
     def work() -> None:
         try:
-            build(llm_factory(run), req.goal, run, notes=req.notes)
+            build(llm_factory(run, cfg), req.goal, run, cfg, notes=req.notes)
         except Exception as err:
             run.emit("error", f"{type(err).__name__}: {err}", traceback=traceback.format_exc()[-3000:])
             run.status = "failed"
@@ -130,7 +137,8 @@ async def stream(run_id: str) -> StreamingResponse:
 def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(default=None)) -> dict:
     _guard(x_access_code)
     spec = SystemSpec.load(_build_dir(run_id) / "spec.json")
-    out = run_system(llm_factory(None), spec, req.input, settings())
+    cfg = settings()
+    out = run_system(llm_factory(None, cfg), spec, req.input, cfg)
     return out
 
 

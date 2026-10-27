@@ -38,11 +38,16 @@ class Run:
         # Also print, so the CLI shows the same story as the dashboard.
         print(f"[{stage:>12}] {message}", flush=True)
 
-    def add_usage(self, tier: str, model: str, prompt: int, completion: int) -> None:
-        u = self.usage.setdefault(tier, {"model": model, "calls": 0, "prompt_tokens": 0, "completion_tokens": 0})
+    def add_usage(self, tier: str, model: str, prompt: int, completion: int, cost: float = 0.0) -> None:
+        u = self.usage.setdefault(tier, {"model": model, "calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0})
         u["calls"] += 1
         u["prompt_tokens"] += prompt
         u["completion_tokens"] += completion
+        u["cost_usd"] = round(u.get("cost_usd", 0.0) + cost, 6)
+
+    @property
+    def cost_usd(self) -> float:
+        return round(sum(u.get("cost_usd", 0.0) for u in self.usage.values()), 6)
 
     def summary(self) -> dict[str, Any]:
         return {
@@ -52,6 +57,7 @@ class Run:
             "status": self.status,
             "created": self.created,
             "usage": self.usage,
+            "cost_usd": self.cost_usd,
             "result": self.result,
             "events": len(self.events),
         }

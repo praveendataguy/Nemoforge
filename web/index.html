@@ -48,7 +48,7 @@ body { overflow-x: hidden; }
 .timeline li.toolsmith::before { background: var(--super); }
 .timeline li.eval::before, .timeline li.tests::before { background: var(--nano); }
 .timeline li.done::before { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
-.timeline li.error::before { background: var(--bad); }
+.timeline li.error::before, .timeline li.budget::before { background: var(--bad); }
 .timeline .stage { font: 11px var(--mono); color: var(--muted); display: block; }
 .timeline li.live::before { animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px var(--accent-soft); } }
@@ -80,6 +80,11 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
 .row input, .playground textarea { flex: 1 1 220px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; }
 .playground textarea { width: 100%; min-height: 80px; margin-bottom: 10px; }
 .hidden { display: none !important; }
+.opts { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; color: var(--muted); font-size: 13.5px; align-items: center; }
+.opts input[type=number] { width: 70px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; margin-left: 4px; }
+.opts input[type=checkbox] { accent-color: var(--accent); margin-right: 6px; }
+.total { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.total b { color: var(--text); font-family: var(--mono); }
 .empty { color: var(--muted); font-size: 14px; }
 .history a { color: var(--text); text-decoration: none; display: block; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .history a span { color: var(--muted); font: 11px var(--mono); float: right; }
@@ -99,6 +104,8 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
       <button id="buildBtn">Build it</button>
     </div>
     <div class="examples" id="examples"></div>
+    <div class="opts"><label><input type="checkbox" id="lite"> Lite mode (Super instead of Ultra, roughly 3x cheaper)</label>
+      <label>Budget $<input type="number" id="budget" min="0.01" max="20" step="0.05" value="0.50"></label></div>
   </section>
 
   <div class="grid">
@@ -161,6 +168,7 @@ async function loadConfig() {
     + `<span class="chip ${c.tavily_key ? "ok" : "no"}">Tavily ${c.tavily_key ? "connected" : "key missing"}</span>`
     + `<span class="chip ${c.sandbox_no_network ? "ok" : "no"}">tool sandbox ${c.sandbox_no_network ? "offline" : "has network"}</span>`;
   needCode = c.access_code;
+  $("lite").checked = c.lite; $("budget").value = c.budget_usd || 0.5;
 }
 
 async function loadHistory() {
@@ -172,7 +180,7 @@ async function loadHistory() {
 }
 
 function reset() {
-  rounds = [];
+  rounds = []; for (const k in live) delete live[k];
   $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = "";
   $("summary").textContent = "The Architect is designing...";
   ["scorePanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
@@ -214,14 +222,23 @@ function renderResults(results) {
 }
 
 function renderUsage(usage) {
-  const tiers = Object.keys(usage || {}); if (!tiers.length) return;
+  const tiers = ["ultra", "super", "nano"].filter(t => usage && usage[t]); if (!tiers.length) return;
+  const total = tiers.reduce((a, t) => a + (usage[t].cost_usd || 0), 0);
   $("usage").classList.remove("empty");
-  $("usage").innerHTML = `<table class="usage"><tr><th>Model</th><th>Calls</th><th>Tokens in</th><th>Tokens out</th></tr>` + tiers.map(t => `<tr><td><span class="tier ${t}" style="float:none">${t}</span></td><td>${usage[t].calls}</td><td>${usage[t].prompt_tokens.toLocaleString()}</td><td>${usage[t].completion_tokens.toLocaleString()}</td></tr>`).join("") + `</table>`;
+  $("usage").innerHTML = `<table class="usage"><tr><th>Model</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr>` + tiers.map(t => `<tr><td><span class="tier ${t}" style="float:none">${t}</span></td><td>${usage[t].calls}</td><td>${(usage[t].prompt_tokens + usage[t].completion_tokens).toLocaleString()}</td><td>$${(usage[t].cost_usd || 0).toFixed(4)}</td></tr>`).join("") + `</table><div class="total">Total <b>$${total.toFixed(4)}</b> at approximate list prices</div>`;
 }
 
+const d0 = e => e.data || {};
+const live = {};
+function liveCost(d) {
+  const u = live[d.tier] || (live[d.tier] = { calls: 0, prompt_tokens: 0, completion_tokens: 0, cost_usd: 0 });
+  u.calls++; u.prompt_tokens += d.prompt_tokens; u.completion_tokens += d.completion_tokens; u.cost_usd += d.cost_usd;
+  renderUsage(live);
+}
 function onEvent(e) {
   if (e.stage === "ping") return;
   if (e.stage === "end") { document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live")); $("buildBtn").disabled = false; loadHistory(); return; }
+  if (e.stage === "model" && d0(e).total_cost_usd !== undefined) liveCost(d0(e));
   if (e.stage !== "model") {
     document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live"));
     const li = document.createElement("li"); li.className = e.stage + " live";
@@ -252,7 +269,7 @@ async function watch(id) {
 $("buildBtn").onclick = async () => {
   const goal = $("goal").value.trim(); if (goal.length < 8) return $("goal").focus();
   $("buildBtn").disabled = true;
-  const r = await post("/api/builds", { goal });
+  const r = await post("/api/builds", { goal, lite: $("lite").checked, budget_usd: parseFloat($("budget").value) || null });
   if (!r.ok) { $("buildBtn").disabled = false; return alert(await r.text()); }
   watch((await r.json()).id); loadHistory();
 };

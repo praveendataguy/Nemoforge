@@ -10,7 +10,7 @@ from .fake_llm import FakeLLM
 
 def _client(tmp_path, monkeypatch):
     monkeypatch.setenv("NF_BUILDS_DIR", str(tmp_path))
-    monkeypatch.setattr(server, "llm_factory", lambda run: FakeLLM())
+    monkeypatch.setattr(server, "llm_factory", lambda run, cfg: FakeLLM())
     return TestClient(server.app)
 
 

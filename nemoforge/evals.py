@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from .config import Settings
-from .llm import LLM, chat_json
+from .llm import LLM, BudgetExceeded, chat_json
 from .runtime import run_system
 from .spec import EvalCase, SystemSpec
 
@@ -64,6 +64,8 @@ def evaluate(llm: LLM, spec: SystemSpec, cases: list[EvalCase], cfg: Settings, w
         try:
             res = run_system(llm, spec, case.input, cfg)
             verdict = grade(llm, case, res["output"])
+        except BudgetExceeded:
+            raise
         except Exception as err:  # one broken case should not sink the whole round
             res = {"output": "", "trace": [], "ms": 0}
             verdict = {"pass": False, "score": 0.0, "reason": f"run crashed: {type(err).__name__}: {err}", "by": "error"}

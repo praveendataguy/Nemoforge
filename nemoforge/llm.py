@@ -21,6 +21,10 @@ _THINK = re.compile(r"<think>.*?</think>", re.S)
 _FENCE = re.compile(r"```(?:json)?\s*(\{.*\}|\[.*\])\s*```", re.S)
 
 
+class BudgetExceeded(RuntimeError):
+    pass
+
+
 class LLM(Protocol):
     def chat(self, tier: Tier, system: str, user: str, *, max_tokens: int = 4096) -> str: ...
 
@@ -39,6 +43,10 @@ class NemotronRouter:
         return getattr(self.cfg.models, tier)
 
     def chat(self, tier: Tier, system: str, user: str, *, max_tokens: int = 4096) -> str:
+        if self.cfg.lite and tier == "ultra":
+            tier = "super"
+        if self.run is not None and self.cfg.budget_usd and self.run.cost_usd >= self.cfg.budget_usd:
+            raise BudgetExceeded(f"budget of ${self.cfg.budget_usd:.2f} used up (spent ${self.run.cost_usd:.4f})")
         model = self.model_for(tier)
         started = time.time()
         resp = self.client.chat.completions.create(
@@ -49,14 +57,18 @@ class NemotronRouter:
         )
         text = resp.choices[0].message.content or ""
         if self.run is not None and resp.usage is not None:
-            self.run.add_usage(tier, model, resp.usage.prompt_tokens, resp.usage.completion_tokens)
+            p_in, p_out = self.cfg.prices[tier]
+            cost = (resp.usage.prompt_tokens * p_in + resp.usage.completion_tokens * p_out) / 1_000_000
+            self.run.add_usage(tier, model, resp.usage.prompt_tokens, resp.usage.completion_tokens, cost)
             self.run.emit(
                 "model",
-                f"{tier} ({model.split('/')[-1]}) answered in {time.time() - started:.1f}s",
+                f"{tier} ({model.split('/')[-1]}) answered in {time.time() - started:.1f}s, ${cost:.4f}",
                 tier=tier,
                 model=model,
                 prompt_tokens=resp.usage.prompt_tokens,
                 completion_tokens=resp.usage.completion_tokens,
+                cost_usd=cost,
+                total_cost_usd=self.run.cost_usd,
             )
         return _THINK.sub("", text).strip()
 

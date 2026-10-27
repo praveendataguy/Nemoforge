@@ -14,7 +14,7 @@ from typing import Any
 from . import architect, evals, optimizer, toolsmith
 from .config import Settings, settings as load_settings
 from .events import Run
-from .llm import LLM
+from .llm import LLM, BudgetExceeded
 from .spec import EvalCase, SystemSpec
 from .tools import builtin_names
 
@@ -44,20 +44,21 @@ def _repair(spec: SystemSpec) -> SystemSpec:
 
 def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str = "") -> dict[str, Any]:
     cfg = cfg or load_settings()
+    big = "Nemotron Super (lite mode)" if cfg.lite else "Nemotron Ultra"
     started = time.time()
     out_dir: Path = cfg.builds_dir / run.id
     out_dir.mkdir(parents=True, exist_ok=True)
     if run.log_path is None:
         run.log_path = out_dir / "events.jsonl"
 
-    run.emit("architect", "Nemotron Ultra is designing the agent team", goal=goal)
+    run.emit("architect", f"{big} is designing the agent team", goal=goal)
     spec = _repair(architect.design(llm, goal, notes))
     run.emit("architect", f"Designed '{spec.name}': {len(spec.agents)} agents, {len(spec.tools)} custom tools", spec=spec.model_dump())
 
     spec = _repair(_forge_missing(llm, spec, run, cfg))
     spec.save(out_dir / f"spec_v{spec.version}.json")
 
-    run.emit("tests", f"Nemotron Ultra is writing {cfg.eval_cases} test cases")
+    run.emit("tests", f"{big} is writing {cfg.eval_cases} test cases")
     cases = evals.design_cases(llm, spec, cfg.eval_cases)
     n_hold = max(1, len(cases) // 3) if len(cases) >= 3 else 0
     train, holdout = cases[: len(cases) - n_hold], cases[len(cases) - n_hold :]
@@ -68,8 +69,14 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
     best: tuple[float, float, SystemSpec] | None = None
     for round_no in range(1, cfg.max_iterations + 1):
         run.emit("eval", f"Round {round_no}: running v{spec.version} on all tests (agents on Nemotron)", round=round_no)
-        res_train = evals.evaluate(llm, spec, train, cfg)
-        res_hold = evals.evaluate(llm, spec, holdout, cfg) if holdout else []
+        try:
+            res_train = evals.evaluate(llm, spec, train, cfg)
+            res_hold = evals.evaluate(llm, spec, holdout, cfg) if holdout else []
+        except BudgetExceeded as err:
+            if best is None:
+                raise
+            run.emit("budget", f"Stopping early: {err}. Keeping the best version so far.")
+            break
         s_train, s_hold = _score(res_train), _score(res_hold)
         entry = {"round": round_no, "version": spec.version, "train": s_train, "holdout": s_hold, "results": res_train + res_hold}
         history.append(entry)
@@ -95,9 +102,13 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
             break
         if round_no == cfg.max_iterations:
             break
-        run.emit("optimizer", "Nemotron Ultra is diagnosing the failures")
-        spec, info = optimizer.improve(llm, spec, res_train)
-        spec = _repair(_forge_missing(llm, spec, run, cfg))
+        run.emit("optimizer", f"{big} is diagnosing the failures")
+        try:
+            spec, info = optimizer.improve(llm, spec, res_train)
+            spec = _repair(_forge_missing(llm, spec, run, cfg))
+        except BudgetExceeded as err:
+            run.emit("budget", f"Stopping early: {err}. Keeping the best version so far.")
+            break
         spec.save(out_dir / f"spec_v{spec.version}.json")
         entry["optimizer"] = info
         run.emit("optimizer", info["diagnosis"] or "Updated the design", changes=info["changes"], spec=spec.model_dump())
@@ -114,6 +125,7 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
         "holdout_score": last["holdout"],
         "rounds": [{k: h[k] for k in ("round", "version", "train", "holdout")} | ({"changes": h["optimizer"]["changes"]} if "optimizer" in h else {}) for h in history],
         "usage": run.usage,
+        "cost_usd": run.cost_usd,
         "seconds": round(time.time() - started, 1),
         "build_dir": str(out_dir),
     }

@@ -16,6 +16,10 @@ def main(argv: list[str] | None = None) -> int:
     b = sub.add_parser("build", help="design, test and improve an agent team for a goal")
     b.add_argument("goal")
     b.add_argument("--notes", default="")
+    b.add_argument("--lite", action="store_true", help="send Ultra's jobs to Super (cheaper)")
+    b.add_argument("--budget", type=float, default=None, help="stop the build after this many USD")
+    b.add_argument("--cases", type=int, default=None, help="number of test cases")
+    b.add_argument("--rounds", type=int, default=None, help="max improvement rounds")
 
     r = sub.add_parser("run", help="run a finished build on one input")
     r.add_argument("build_id")
@@ -35,6 +39,16 @@ def main(argv: list[str] | None = None) -> int:
 
     args = p.parse_args(argv)
     cfg = settings()
+    if args.cmd == "build":
+        import dataclasses
+
+        cfg = dataclasses.replace(
+            cfg,
+            lite=args.lite or cfg.lite,
+            budget_usd=args.budget if args.budget is not None else cfg.budget_usd,
+            eval_cases=args.cases or cfg.eval_cases,
+            max_iterations=args.rounds or cfg.max_iterations,
+        )
 
     if args.cmd == "build":
         from .events import registry
@@ -42,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
         from .llm import NemotronRouter
 
         run = registry.new("build", args.goal)
-        report = build(NemotronRouter(run), args.goal, run, cfg, notes=args.notes)
+        report = build(NemotronRouter(run, cfg), args.goal, run, cfg, notes=args.notes)
         print(json.dumps(report, indent=2))
         return 0 if run.status == "passed" else 2
 

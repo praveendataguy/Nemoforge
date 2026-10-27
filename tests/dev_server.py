@@ -25,7 +25,7 @@ class SlowFake(FakeLLM):
 
 
 _fakes = {}
-server.llm_factory = lambda run: _fakes.setdefault(id(run), SlowFake(run))
+server.llm_factory = lambda run, cfg: _fakes.setdefault(id(run), SlowFake(run))
 
 if __name__ == "__main__":
     uvicorn.run(server.app, port=8765)
