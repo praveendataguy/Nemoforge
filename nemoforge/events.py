@@ -103,7 +103,8 @@ class Registry:
                 continue
             done = next((e for e in reversed(events) if e["stage"] in ("done", "error")), None)
             report = (done or {}).get("data", {}).get("report", {})
-            status = "failed" if done is None or done["stage"] == "error" else (
+            # No done or error event means the process stopped mid-build (e.g. the server was restarted).
+            status = "interrupted" if done is None else "failed" if done["stage"] == "error" else (
                 "passed" if (log.parent / "status").exists() and (log.parent / "status").read_text(encoding="utf-8").strip() == "passed" else "below_target"
             )
             run = Run(id=run_id, kind="build", target=events[0].get("data", {}).get("goal", run_id), status=status,
