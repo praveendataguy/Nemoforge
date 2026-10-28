@@ -610,6 +610,27 @@ html[data-theme="robot"]:not([data-theme="dark"]) .agent, html[data-theme="robot
 html[data-theme="robot"]:not([data-theme="dark"]) .spot { background: linear-gradient(120deg, rgba(255,120,220,.22), rgba(0,209,178,.2) 45%, rgba(255,214,90,.22) 80%, rgba(150,110,255,.22)); border-color: rgba(201,168,255,.9); }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes { background: linear-gradient(90deg, #ffe0f6, #dcefff, #ddffef); }
 @media (prefers-reduced-motion: reduce) { html[data-theme="robot"]:not([data-theme="dark"]) .panel { animation: none; } }
+/* ---- Dashboard colours: one glowing hue per KPI group ---- */
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi.volume { --g: #00e5c3; --g2: #0b6b8f; --gt: #7dfbe6; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi.quality { --g: #b06bff; --g2: #4a1f9e; --gt: #d9b8ff; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi.cost { --g: #ffb02e; --g2: #9a4a00; --gt: #ffd88a; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi.risk { --g: #ff4f8b; --g2: #8f1546; --gt: #ffb3cd; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+    linear-gradient(color-mix(in srgb, var(--g) 12%, transparent) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(90deg, color-mix(in srgb, var(--g) 12%, transparent) 1px, transparent 1px) 0 0 / 16px 16px,
+    radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--g) 55%, transparent), transparent 60%),
+    radial-gradient(100% 90% at 100% 100%, color-mix(in srgb, var(--g2) 85%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in srgb, var(--g2) 70%, #0a1420), #0a1420 75%);
+  border: 1px solid color-mix(in srgb, var(--g) 55%, #0a1420); border-top: 3px solid var(--g);
+  box-shadow: inset 0 0 18px rgba(0,0,0,.45), 0 0 22px -6px var(--g), 0 3px 0 color-mix(in srgb, var(--g2) 70%, #000); }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi * { color: color-mix(in srgb, var(--gt) 60%, #e8eef4); }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .lbl { color: #ffffff; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .grp { color: var(--gt); }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .val { color: var(--gt); text-shadow: 0 0 12px var(--g), 0 0 2px var(--g); }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .grp::before { background: var(--g); box-shadow: 0 0 8px var(--g); }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi.click:hover { box-shadow: inset 0 0 18px rgba(0,0,0,.45), 0 0 34px -4px var(--g), 0 3px 0 color-mix(in srgb, var(--g2) 70%, #000); }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff9f1c; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
