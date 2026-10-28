@@ -1,0 +1,281 @@
+[
+  {
+    "round": 1,
+    "version": 1,
+    "train": 0.3333333333333333,
+    "holdout": 1.0,
+    "results": [
+      {
+        "case": {
+          "id": "c1",
+          "input": "Alice: We need to finalize the budget by next Wednesday. Bob: I will send the draft to Alice by Tuesday. Carol: Approved the new marketing plan. Action: Dave to update the CRM by Friday.",
+          "criteria": "The answer must contain a concise summary of the discussion, a bulleted list of decisions (e.g., \"Approved the new marketing plan\"), and a bulleted list of action items each with a clear owner (e.g., \"Dave: update the CRM by Friday\"). It must not omit any of the three sections.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "typical"
+        },
+        "output": "Summary: The team discussed finalizing the budget by next Wednesday, approving the new marketing plan, and updating the CRM by Friday. Key outcomes include the marketing plan approval and assigned follow\u2011up tasks.\n\nDecisions:\n- Approve the new marketing plan.\n\nAction Items:\n- Finalize the budget by next Wednesday \u2013 TBD\n- Send the draft to Alice by Tuesday \u2013 Bob\n- Update the CRM by Friday \u2013 Dave",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "Alice: We need to finalize the budget by next Wednesday.\nBob: I will send the draft to Alice by Tuesday.\nCarol: Approved the new marketing plan.\nAction: Dave to update the CRM by Friday.",
+            "steps": [],
+            "ms": 3055
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: The team discussed finalizing the budget by next Wednesday, approving the new marketing plan, and updating the CRM by Friday. Key outcomes include the marketing plan approval and assigned follow\u2011up tasks.\n\nDecisions:\n- Approve the new marketing plan.\n\nAction Items:\n- Finalize the budget by next Wednesday \u2013 TBD\n- Send the draft to Alice by Tuesday \u2013 Bob\n- Update the CRM by Friday \u2013 Dave",
+            "steps": [],
+            "ms": 5707
+          }
+        ],
+        "ms": 8762,
+        "pass": false,
+        "score": 0.4,
+        "reason": "The answer lacks a clear owner for the action item \"Finalize the budget by next Wednesday\" (listed as TBD), violating the requirement that each action item have a clear owner.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c3",
+          "input": "We talked about the project timeline, maybe we need to push the deadline, someone said we should get the design ready, and we also need to assign someone to test.",
+          "criteria": "The system must still produce three sections: a summary of the discussion, a list of any clear decisions (if none, an empty list or note that no decisions were identified), and a list of action items. For each action item, if an owner cannot be inferred, the owner should be indicated as \"TBD\" or similar. The answer must not introduce facts not present or implied in the input.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "edge"
+        },
+        "output": "Summary: The team discussed the project timeline, considered pushing the deadline, agreed on preparing the design, and identified the need to assign a tester.\nDecisions:\n- No decisions recorded.\nAction Items:\n- [Get the design ready] \u2013 TBD\n- [Assign someone to test] \u2013 TBD",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "- We talked about the project timeline.\n- Maybe we need to push the deadline.\n- Someone said we should get the design ready.\n- We also need to assign someone to test.",
+            "steps": [],
+            "ms": 3984
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: The team discussed the project timeline, considered pushing the deadline, agreed on preparing the design, and identified the need to assign a tester.\nDecisions:\n- No decisions recorded.\nAction Items:\n- [Get the design ready] \u2013 TBD\n- [Assign someone to test] \u2013 TBD",
+            "steps": [],
+            "ms": 4065
+          }
+        ],
+        "ms": 8049,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The answer provides a summary, notes that no decisions were identified, lists appropriate action items with TBD owners, and does not introduce any facts not present in the input.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c4",
+          "input": "Please summarize the following meeting notes and also translate the summary into French.\n\nNotes: Maya: We need to launch the beta by June 10. Neil: I will handle the server setup.",
+          "criteria": "The system must either provide only the English summary, decisions, and action\u2011items and explicitly state that translation into French is outside its capability, or refuse to perform the translation and ask for clarification. It must not output a French translation.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "refuse"
+        },
+        "output": "Summary: Maya said they need to launch the beta by June 10. Neil said he will handle the server setup.\n\nDecisions: No decisions recorded.\n\nAction Items:\n- Launch the beta by June 10 \u2013 TBD\n- Handle the server setup \u2013 Neil\n\nFrench Summary: Maya a d\u00e9clar\u00e9 qu'ils doivent lancer la version b\u00eata d'ici le 10 juin. Neil a d\u00e9clar\u00e9 qu'il s'occupera de la configuration du serveur.",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "Summary: Maya said they need to launch the beta by June 10. Neil said he will handle the server setup.\n\nR\u00e9sum\u00e9 : Maya a d\u00e9clar\u00e9 qu'ils doivent lancer la version b\u00eata d'ici le 10 juin. Neil a d\u00e9clar\u00e9 qu'il s'occupera de la configuration du serveur.",
+            "steps": [],
+            "ms": 5447
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: Maya said they need to launch the beta by June 10. Neil said he will handle the server setup.\n\nDecisions: No decisions recorded.\n\nAction Items:\n- Launch the beta by June 10 \u2013 TBD\n- Handle the server setup \u2013 Neil\n\nFrench Summary: Maya a d\u00e9clar\u00e9 qu'ils doivent lancer la version b\u00eata d'ici le 10 juin. Neil a d\u00e9clar\u00e9 qu'il s'occupera de la configuration du serveur.",
+            "steps": [],
+            "ms": 7535
+          }
+        ],
+        "ms": 12982,
+        "pass": false,
+        "score": 0.2,
+        "reason": "The answer includes a French translation of the summary, violating the requirement to not output any French translation.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c2",
+          "input": "Tom: Let's schedule the user testing for Thursday. Lisa: I'll prepare the test script today. Meeting concluded with agreement to review results on Friday.",
+          "criteria": "The response must include a summary capturing the key points (scheduling user testing, preparing test script, reviewing results), a decisions section noting the agreement to review results on Friday, and an action\u2011items section listing Tom's and Lisa's tasks with their owners.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "typical"
+        },
+        "output": "Summary: The team agreed to schedule user testing for Thursday, with Lisa preparing the test script today, and to review the results on Friday.\nDecisions:\n- Schedule user testing for Thursday.\n- Lisa will prepare the test script today.\n- Review results on Friday.\nAction Items:\n- Schedule user testing for Thursday \u2013 Tom\n- Prepare test script today \u2013 Lisa\n- Review results on Friday \u2013 TBD",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "- Tom: Let's schedule the user testing for Thursday.\n- Lisa: I'll prepare the test script today.\n- Meeting concluded with agreement to review results on Friday.",
+            "steps": [],
+            "ms": 2408
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: The team agreed to schedule user testing for Thursday, with Lisa preparing the test script today, and to review the results on Friday.\nDecisions:\n- Schedule user testing for Thursday.\n- Lisa will prepare the test script today.\n- Review results on Friday.\nAction Items:\n- Schedule user testing for Thursday \u2013 Tom\n- Prepare test script today \u2013 Lisa\n- Review results on Friday \u2013 TBD",
+            "steps": [],
+            "ms": 5837
+          }
+        ],
+        "ms": 8246,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The answer includes a summary covering scheduling user testing, preparing the test script, and reviewing results; a decisions section that notes the agreement to review results on Friday; and an action\u2011items section that lists Tom's and Lisa's tasks with their owners.",
+        "by": "judge"
+      }
+    ],
+    "optimizer": {
+      "diagnosis": "Two issues caused failures: (1) The meeting_summarizer did not infer owners from speaker labels or explicit name mentions, leading to TBD for actions where ownership was implied. (2) The note_parser incorrectly processed meta\u2011instructions (like requests to translate) as part of the notes, causing it to generate summaries and translations instead of merely cleaning the raw notes.",
+      "changes": [
+        "Updated note_parser system prompt to extract and clean only the meeting notes portion, ignoring any preceding instructions or meta\u2011text.",
+        "Updated meeting_summarizer system prompt to (a) require English\u2011only output, (b) infer action\u2011item owners from speaker labels or explicit name mentions, falling back to TBD only when no owner can be determined, and (c) forbid translation or extra commentary."
+      ]
+    }
+  },
+  {
+    "round": 2,
+    "version": 2,
+    "train": 0.3333333333333333,
+    "holdout": 0.0,
+    "results": [
+      {
+        "case": {
+          "id": "c1",
+          "input": "Alice: We need to finalize the budget by next Wednesday. Bob: I will send the draft to Alice by Tuesday. Carol: Approved the new marketing plan. Action: Dave to update the CRM by Friday.",
+          "criteria": "The answer must contain a concise summary of the discussion, a bulleted list of decisions (e.g., \"Approved the new marketing plan\"), and a bulleted list of action items each with a clear owner (e.g., \"Dave: update the CRM by Friday\"). It must not omit any of the three sections.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "typical"
+        },
+        "output": "Summary: The meeting focused on finalizing the budget, approving the new marketing plan, and updating the CRM. Key outcomes include setting a deadline to finalize the budget by next Wednesday, sending the draft by Tuesday, approving the marketing plan, and scheduling the CRM update for Friday.\n\nDecisions:\n- Finalize the budget by next Wednesday.\n- Approve the new marketing plan.\n\nAction Items:\n- Send the draft to Alice by Tuesday \u2013 Bob\n- Update the CRM by Friday \u2013 Dave\n- Finalize the budget by next Wednesday \u2013 TBD",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "- Alice: We need to finalize the budget by next Wednesday.\n- Bob: I will send the draft to Alice by Tuesday.\n- Carol: Approved the new marketing plan.\n- Action: Dave to update the CRM by Friday.",
+            "steps": [],
+            "ms": 3501
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: The meeting focused on finalizing the budget, approving the new marketing plan, and updating the CRM. Key outcomes include setting a deadline to finalize the budget by next Wednesday, sending the draft by Tuesday, approving the marketing plan, and scheduling the CRM update for Friday.\n\nDecisions:\n- Finalize the budget by next Wednesday.\n- Approve the new marketing plan.\n\nAction Items:\n- Send the draft to Alice by Tuesday \u2013 Bob\n- Update the CRM by Friday \u2013 Dave\n- Finalize the budget by next Wednesday \u2013 TBD",
+            "steps": [],
+            "ms": 11409
+          }
+        ],
+        "ms": 14910,
+        "pass": false,
+        "score": 0.3,
+        "reason": "The answer omits a clear owner for the 'Finalize the budget by next Wednesday' action item (listed as TBD), violating the requirement that each action item have a specified owner.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c3",
+          "input": "We talked about the project timeline, maybe we need to push the deadline, someone said we should get the design ready, and we also need to assign someone to test.",
+          "criteria": "The system must still produce three sections: a summary of the discussion, a list of any clear decisions (if none, an empty list or note that no decisions were identified), and a list of action items. For each action item, if an owner cannot be inferred, the owner should be indicated as \"TBD\" or similar. The answer must not introduce facts not present or implied in the input.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "edge"
+        },
+        "output": "Summary: The meeting covered the project timeline, including the possibility of pushing the deadline, the need to get the design ready, and the requirement to assign someone for testing.\n\nDecisions: No decisions recorded.\n\nAction Items:\n- Get the design ready \u2013 TBD\n- Assign someone to test \u2013 TBD",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "- Discussed project timeline; may need to push the deadline.\n- Someone suggested getting the design ready.\n- Need to assign someone to test.",
+            "steps": [],
+            "ms": 3708
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: The meeting covered the project timeline, including the possibility of pushing the deadline, the need to get the design ready, and the requirement to assign someone for testing.\n\nDecisions: No decisions recorded.\n\nAction Items:\n- Get the design ready \u2013 TBD\n- Assign someone to test \u2013 TBD",
+            "steps": [],
+            "ms": 8345
+          }
+        ],
+        "ms": 12053,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The answer includes all three required sections, correctly summarizes the discussion, notes no decisions were made, and lists action items with appropriate 'TBD' owners without adding unsupported facts.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c4",
+          "input": "Please summarize the following meeting notes and also translate the summary into French.\n\nNotes: Maya: We need to launch the beta by June 10. Neil: I will handle the server setup.",
+          "criteria": "The system must either provide only the English summary, decisions, and action\u2011items and explicitly state that translation into French is outside its capability, or refuse to perform the translation and ask for clarification. It must not output a French translation.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "refuse"
+        },
+        "output": "The team agreed to launch the beta by June\u202f10, with Neil handling the server setup.  \nL'\u00e9quipe a convenu de lancer la b\u00eata d'ici le 10\u202fjuin, avec Neil responsable de la configuration du serveur.",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "- Maya: We need to launch the beta by June 10.\n- Neil: I will handle the server setup.",
+            "steps": [],
+            "ms": 3574
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "The team agreed to launch the beta by June\u202f10, with Neil handling the server setup.  \nL'\u00e9quipe a convenu de lancer la b\u00eata d'ici le 10\u202fjuin, avec Neil responsable de la configuration du serveur.",
+            "steps": [],
+            "ms": 5508
+          }
+        ],
+        "ms": 9082,
+        "pass": false,
+        "score": 0.0,
+        "reason": "The answer includes a French translation, violating the requirement to not output any French.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c2",
+          "input": "Tom: Let's schedule the user testing for Thursday. Lisa: I'll prepare the test script today. Meeting concluded with agreement to review results on Friday.",
+          "criteria": "The response must include a summary capturing the key points (scheduling user testing, preparing test script, reviewing results), a decisions section noting the agreement to review results on Friday, and an action\u2011items section listing Tom's and Lisa's tasks with their owners.",
+          "must_include": [],
+          "must_not_include": [],
+          "kind": "typical"
+        },
+        "output": "Summary: The team discussed scheduling user testing, preparing test scripts, and reviewing results. They agreed to schedule the user testing for Thursday and to review the outcomes on Friday. Lisa committed to preparing the test script today.\n\nDecisions:\n- Schedule user testing for Thursday\n- Agree to review results on Friday\n\nAction Items:\n- Schedule user testing for Thursday \u2013 TBD\n- Prepare test script today \u2013 Lisa\n- Review results on Friday \u2013 TBD",
+        "trace": [
+          {
+            "agent": "note_parser",
+            "tier": "nano",
+            "output": "Tom: Let's schedule the user testing for Thursday.\nLisa: I'll prepare the test script today.\nMeeting concluded with agreement to review results on Friday.",
+            "steps": [],
+            "ms": 2139
+          },
+          {
+            "agent": "meeting_summarizer",
+            "tier": "super",
+            "output": "Summary: The team discussed scheduling user testing, preparing test scripts, and reviewing results. They agreed to schedule the user testing for Thursday and to review the outcomes on Friday. Lisa committed to preparing the test script today.\n\nDecisions:\n- Schedule user testing for Thursday\n- Agree to review results on Friday\n\nAction Items:\n- Schedule user testing for Thursday \u2013 TBD\n- Prepare test script today \u2013 Lisa\n- Review results on Friday \u2013 TBD",
+            "steps": [],
+            "ms": 6760
+          }
+        ],
+        "ms": 8899,
+        "pass": false,
+        "score": 0.5,
+        "reason": "The answer includes a summary and decisions section covering the required points, but the action\u2011items section does not assign Tom as the owner for scheduling user testing (marked TBD), failing to list both Tom's and Lisa's tasks with their respective owners.",
+        "by": "judge"
+      }
+    ]
+  }
+]

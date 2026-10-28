@@ -7,6 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY nemoforge/ nemoforge/
 COPY web/ web/
+COPY demo/ demo/
 ENV NF_BUILDS_DIR=/data/builds
 EXPOSE 8000
 CMD ["uvicorn", "nemoforge.server:app", "--host", "0.0.0.0", "--port", "8000"]

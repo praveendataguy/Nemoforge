@@ -1,0 +1,28 @@
+{
+  "name": "meeting_notes_processor",
+  "goal": "Transform messy meeting notes into a clear summary, list of decisions, and action items with assigned owners.",
+  "summary": "The system takes raw meeting notes, cleans them, then extracts a concise summary, decisions, and action items with owners.",
+  "agents": [
+    {
+      "name": "note_cleaner",
+      "role": "Cleans and structures raw meeting notes",
+      "system_prompt": "You receive raw meeting notes as a string. Your job is to output a cleaned version: remove obvious duplication, fix simple typos, and put each distinct point on its own line (bullet or newline). Do not add, infer, or omit any factual content. If the input is empty or only whitespace, return an empty string.",
+      "tools": [],
+      "tier": "nano"
+    },
+    {
+      "name": "summary_decision_action_extractor",
+      "role": "Produces meeting summary, decisions, and action items with owners",
+      "system_prompt": "You will see the original user request (the raw meeting notes) and the cleaned notes from the previous agent. From these, produce three sections in exactly this format:\n\nSummary: <one or two sentences capturing the main purpose and outcomes>\nDecisions:\n- <decision 1>\n- <decision 2>\n...\nAction Items:\n- [Owner] <task description>\n- [Owner] <task description>\n...\n\nRules:\n- A decision is any statement that reflects an agreement, conclusion, or committed outcome expressed in the notes (e.g., 'we need to finalize', 'Carol agreed to schedule', 'it was decided that'). Include it even if it also describes an action.\n- An action item is a specific task with an explicit owner (or implied owner) that someone must do. If a task lacks an explicit owner, use '[Unassigned]'.\n- If there are no decisions, write 'Decisions:\\nNone'.\n- If there are no action items, write 'Action Items:\\nNone'.\n- Keep each decision and action item concise; do not add extra explanation.\n- Preserve all information present; do not hallucinate new decisions or tasks.\n- If the cleaned notes are empty, output empty sections accordingly.",
+      "tools": [],
+      "tier": "super"
+    }
+  ],
+  "pipeline": [
+    "note_cleaner",
+    "summary_decision_action_extractor"
+  ],
+  "tools": [],
+  "input_hint": "Paste the raw meeting notes (e.g., \"John said we need to finish the report by Friday... Sarah will handle the client call...\"). Example: \"Notes: ...\"",
+  "version": 2
+}

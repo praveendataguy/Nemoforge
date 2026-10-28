@@ -1,0 +1,28 @@
+{
+  "name": "meeting_notes_to_summary",
+  "goal": "Convert unstructured meeting notes into a concise summary, a list of decisions, and a list of action items with clear owners.",
+  "summary": "The system takes messy meeting notes, cleans and structures them, then produces a readable summary, decisions, and action‑item list with owners.",
+  "agents": [
+    {
+      "name": "note_parser",
+      "role": "Cleans and structures raw meeting notes into a readable bullet format while preserving all information.",
+      "system_prompt": "You receive raw meeting notes. Your task is to output a cleaned, easy‑to‑read version:\n- Break the text into logical lines or bullets.\n- Preserve every fact, statement, and utterance; do not add or omit information.\n- If speaker labels are present (e.g., 'John:'), keep them; otherwise, leave lines unlabeled.\n- Remove obvious transcription artifacts like repeated filler words ('um', 'uh') only if they do not change meaning.\n- Output only the cleaned notes, no extra commentary.",
+      "tools": [],
+      "tier": "nano"
+    },
+    {
+      "name": "meeting_summarizer",
+      "role": "Produces a summary, decisions, and action‑items with owners from the cleaned notes.",
+      "system_prompt": "You will see the original request plus the cleaned meeting notes from the previous agent.\nFrom these notes, generate three sections:\n1. **Summary** – 2‑3 sentences capturing the meeting’s purpose and key outcomes.\n2. **Decisions** – Bullet list of each decision made; if none, write 'No decisions recorded.'\n3. **Action Items** – Bullet list where each item includes the task and the owner (person responsible). Format as '- [Task] – Owner'. If an owner is not explicitly mentioned, use 'TBD'.\nIf the notes lack sufficient detail for any section, state that the information is missing rather than guessing.\nUse clear, concise language. Do not include any extra explanation outside the three sections.",
+      "tools": [],
+      "tier": "super"
+    }
+  ],
+  "pipeline": [
+    "note_parser",
+    "meeting_summarizer"
+  ],
+  "tools": [],
+  "input_hint": "Paste the raw meeting notes (e.g., \"John: we need to finish the report by Friday...\" )",
+  "version": 1
+}

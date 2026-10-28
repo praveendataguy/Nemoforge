@@ -155,7 +155,7 @@ def _no_net_prefix() -> list[str]:
 
 def run_python_tool(code: str, args: dict[str, Any], timeout: int = 20) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="nf-tool-") as tmp:
-        with open(os.path.join(tmp, "tool.py"), "w") as f:
+        with open(os.path.join(tmp, "tool.py"), "w", encoding="utf-8") as f:
             f.write(code)
         env = {"PATH": "/usr/bin:/bin", "HOME": tmp, "PYTHONDONTWRITEBYTECODE": "1"}
         cmd = [*_no_net_prefix(), sys.executable, "-I", "-c", _HARNESS]
