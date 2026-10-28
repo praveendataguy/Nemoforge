@@ -20,6 +20,7 @@ header h1 span { color: var(--accent); }
 .chip { font: 12px var(--mono); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .chip.ok { color: var(--accent); border-color: var(--accent); }
 .chip.no { color: var(--bad); border-color: var(--bad); }
+.chip.replay { color: var(--text); border-color: var(--muted); background: var(--line); }
 main { max-width: 1240px; margin: 0 auto; padding: 24px 16px 80px; }
 .hero h2 { font-size: 28px; margin: 8px 0 6px; }
 .hero p { color: var(--muted); margin: 0 0 16px; }
@@ -143,7 +144,8 @@ const EXAMPLES = [
   "Turn messy meeting notes into a summary, a decision list and action items with owners and due dates.",
   "Check a job description for biased or exclusionary wording and suggest inclusive rewrites.",
 ];
-let current = null, rounds = [], source = null, needCode = false;
+let current = null, rounds = [], source = null, needCode = false, replay = false;
+const REPLAY_TIP = "Replay mode: set NEBIUS_API_KEY to start new builds";
 function headers() {
   const h = { "Content-Type": "application/json" };
   if (needCode) {
@@ -163,10 +165,13 @@ EXAMPLES.forEach(t => { const b = document.createElement("button"); b.className 
 
 async function loadConfig() {
   const c = await (await fetch("/api/config")).json();
+  replay = !c.nebius_key;
   $("chips").innerHTML = ["nano", "super", "ultra"].map(t => `<span class="chip">${t}: ${esc(c.models[t].split("/").pop())}</span>`).join("")
-    + `<span class="chip ${c.nebius_key ? "ok" : "no"}">Token Factory ${c.nebius_key ? "connected" : "key missing"}</span>`
+    + (replay ? `<span class="chip replay" title="${REPLAY_TIP}">replay mode: showing recorded real runs</span>`
+    : `<span class="chip ok">Token Factory connected</span>`
     + `<span class="chip ${c.tavily_key ? "ok" : "no"}">Tavily ${c.tavily_key ? "connected" : "key missing"}</span>`
-    + `<span class="chip ${c.sandbox_no_network ? "ok" : "no"}">tool sandbox ${c.sandbox_no_network ? "offline" : "has network"}</span>`;
+    + `<span class="chip ${c.sandbox_no_network ? "ok" : "no"}">tool sandbox ${c.sandbox_no_network ? "offline" : "has network"}</span>`);
+  for (const id of ["buildBtn", "tryBtn"]) { $(id).disabled = replay; $(id).title = replay ? REPLAY_TIP : ""; }
   needCode = c.access_code;
   $("lite").checked = c.lite; $("budget").value = c.budget_usd || 0.5;
 }
@@ -185,6 +190,7 @@ function reset() {
   $("summary").textContent = "The Architect is designing...";
   ["scorePanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
   $("tryOut").innerHTML = ""; $("deployOut").classList.add("hidden");
+  $("holdBig").querySelector("small").textContent = "held-out tests (never shown to the optimizer)";
 }
 
 function renderTeam(spec) {
@@ -237,7 +243,7 @@ function liveCost(d) {
 }
 function onEvent(e) {
   if (e.stage === "ping") return;
-  if (e.stage === "end") { document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live")); $("buildBtn").disabled = false; loadHistory(); return; }
+  if (e.stage === "end") { document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live")); $("buildBtn").disabled = replay; loadHistory(); return; }
   if (e.stage === "model" && d0(e).total_cost_usd !== undefined) liveCost(d0(e));
   if (e.stage !== "model") {
     document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live"));
@@ -255,7 +261,12 @@ function onEvent(e) {
     $("changesPanel").classList.remove("hidden");
     $("changes").insertAdjacentHTML("beforeend", `<div class="change"><b>v${rounds.length} → v${rounds.length + 1}</b>: ${esc(e.message)}<ul>${d.changes.map(c => `<li>${esc(c)}</li>`).join("")}</ul></div>`);
   }
-  if (e.stage === "done") { renderUsage(d.report.usage); $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); }
+  if (e.stage === "done") {
+    renderUsage(d.report.usage);
+    if (d.report.train_score !== undefined) {  // the shipped version is the best round, not necessarily the last
+      $("trainBig").firstChild.nodeValue = pct(d.report.train_score); $("holdBig").firstChild.nodeValue = pct(d.report.holdout_score);
+      $("holdBig").querySelector("small").textContent = `held-out tests, shipped v${d.report.version} (never shown to the optimizer)`;
+    } $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); }
 }
 
 async function watch(id) {
@@ -278,7 +289,7 @@ $("tryBtn").onclick = async () => {
   const input = $("tryInput").value.trim(); if (!input) return;
   $("tryBtn").disabled = true; $("tryOut").innerHTML = `<p class="empty">Running the team on Nemotron...</p>`;
   const r = await post(`/api/builds/${current}/invoke`, { input });
-  const j = await r.json(); $("tryBtn").disabled = false;
+  const j = await r.json(); $("tryBtn").disabled = replay;
   if (!r.ok) return $("tryOut").innerHTML = `<pre>${esc(JSON.stringify(j))}</pre>`;
   $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${esc(t.agent)} · ${t.tier} · ${t.ms} ms · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
 };
