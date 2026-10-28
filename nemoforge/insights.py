@@ -270,7 +270,33 @@ def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
         "alerts": sev_counts["critical"] + sev_counts["high"],
         "severity": sev_counts,
         "records": len(records),
-        "routing": routing(calls),
+        "routing": routing(calls) | {"smart": smart_routes(runs, builds_dir)},
+    }
+
+
+def smart_routes(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
+    """What the smart router decided, across every test run and playground run."""
+    decisions: list[dict[str, Any]] = []
+    for run in runs:
+        for e in _by_stage(run, "eval"):
+            for r in e.get("data", {}).get("results", []) or []:
+                decisions += r.get("routes", []) or []
+        path = invocations_path(builds_dir, run.id)
+        if path.exists():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                try:
+                    decisions += json.loads(line).get("routes", []) or []
+                except (ValueError, AttributeError):
+                    continue
+    order = {"nano": 0, "super": 1, "ultra": 2}
+    rated = [d for d in decisions if d.get("difficulty")]
+    return {
+        "decisions": len(decisions),
+        "by_tier": {t: sum(1 for d in decisions if d.get("tier") == t) for t in ("nano", "super", "ultra")},
+        "down": sum(1 for d in decisions if order.get(d.get("tier"), 0) < order.get(d.get("planned"), 0)),
+        "up": sum(1 for d in decisions if order.get(d.get("tier"), 0) > order.get(d.get("planned"), 0)),
+        "avg_difficulty": sum(d["difficulty"] for d in rated) / len(rated) if rated else None,
+        "recent": [{k: d.get(k) for k in ("agent", "planned", "tier", "difficulty", "why")} for d in decisions[-6:]][::-1],
     }
 
 

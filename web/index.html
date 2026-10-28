@@ -233,6 +233,20 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .rtable td:nth-child(n+3) { font-family: var(--mono); text-align: right; } .rtable th:nth-child(n+3) { text-align: right; }
 .rtable .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
 .rtable .role { color: var(--muted); font-size: 12.5px; }
+/* Smart router */
+.smart { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.smart h4 { margin: 0 0 8px; font: 600 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--nano); }
+.smart .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 10px; }
+.smart .facts b { font: 700 20px var(--mono); display: block; }
+.smart .facts span { color: var(--muted); font-size: 12.5px; }
+.decision { display: grid; grid-template-columns: minmax(150px, auto) 1fr; gap: 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.decision .why { color: var(--muted); min-width: 0; }
+.rt { font: 11.5px var(--mono); white-space: nowrap; }
+.rt .tier { float: none; margin: 0 2px; }
+.rt s { color: var(--muted); }
+.diff { font: 11px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; margin-left: 4px; }
+.routes { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+@media (max-width: 700px) { .decision { grid-template-columns: 1fr; gap: 2px; } }
 .reg { width: 100%; }
 .reg tr.regrow { cursor: pointer; } .reg tr.regrow:hover td { background: rgba(255,255,255,.03); }
 .reg td.num { font-family: var(--mono); text-align: right; } .reg th.num { text-align: right; } .reg th, .reg td.num, .reg td .st { white-space: nowrap; }
@@ -254,7 +268,7 @@ pre { background: rgba(3,6,9,.8); }
   <section class="hero">
     <div class="eyebrow">NVIDIA Nemotron · Nebius Token Factory</div>
     <h2>Describe a job. Get a tested AI agent team.</h2>
-    <p><b>Nemotron Ultra</b> designs the team, <b>Super</b> writes and tests its tools, <b>Nano</b> runs it. Every version is scored on tests it has never seen before it ships.</p>
+    <p><b>Nemotron Ultra</b> designs the team, <b>Super</b> writes and tests its tools, and a <b>Nano</b> router picks the cheapest model that can handle each request. Every version is scored on tests it has never seen before it ships.</p>
     <div class="goal">
       <textarea id="goal" placeholder="e.g. Read a customer support email, work out what they need, check our refund policy rules and draft a reply."></textarea>
       <button id="buildBtn">Build it</button>
@@ -397,7 +411,7 @@ function renderChart() {
 
 function renderResults(results) {
   $("resultsPanel").classList.remove("hidden");
-  $("results").innerHTML = results.map(r => `<tr><td class="res ${r.pass ? "pass" : "fail"}">${r.pass ? "Pass" : "Fail"}${r.holdout ? '<span class="held">held-out</span>' : ""}</td><td>${esc(r.input.slice(0, 160))}<details><summary>answer</summary><pre>${esc(r.output)}</pre></details></td><td>${esc(r.reason)}</td></tr>`).join("");
+  $("results").innerHTML = results.map(r => `<tr><td class="res ${r.pass ? "pass" : "fail"}">${r.pass ? "Pass" : "Fail"}${r.holdout ? '<span class="held">held-out</span>' : ""}</td><td>${esc(r.input.slice(0, 160))}${r.routes && r.routes.length ? `<div class="routes">${r.routes.map(routeChip).join("")}</div>` : ""}<details><summary>answer</summary><pre>${esc(r.output)}</pre></details></td><td>${esc(r.reason)}</td></tr>`).join("");
 }
 
 function renderUsage(usage) {
@@ -529,7 +543,7 @@ $("tryBtn").onclick = async () => {
   const r = await post(`/api/builds/${current}/invoke`, { input });
   const j = await r.json(); $("tryBtn").disabled = replay;
   if (!r.ok) return $("tryOut").innerHTML = `<pre>${esc(JSON.stringify(j))}</pre>`;
-  $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${esc(t.agent)} · ${t.tier} · ${t.ms} ms · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
+  $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${t.route ? routeChip(t.route) : `${esc(t.agent)} · ${t.tier}`} · ${t.ms} ms${t.route && t.route.why ? ` · ${esc(t.route.why)}` : ""} · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
 };
 
 $("deployBtn").onclick = async () => {
@@ -573,7 +587,24 @@ function renderRouting(r) {
     + `<div class="rbar" role="img" aria-label="Calls by model">${tiers.map(t => `<i class="${t}" style="flex:${r.tiers[t].calls}" title="${t}: ${r.tiers[t].calls} calls (${pct(r.tiers[t].calls / calls)})"></i>`).join("")}</div>`
     + `<table class="rtable"><thead><tr><th>Model</th><th class="hide-sm">Used for</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>`
     + tiers.map(t => `<tr><td><span class="sw" style="background:var(--${t})"></span>${t}</td><td class="role hide-sm">${ROLE[t]}</td><td>${r.tiers[t].calls} (${pct(r.tiers[t].calls / calls)})</td><td>${fmtN(r.tiers[t].tokens)}</td><td>$${r.tiers[t].cost_usd.toFixed(4)}</td></tr>`).join("")
-    + `</tbody></table>`;
+    + `</tbody></table>` + renderSmart(r.smart);
+}
+// One routing decision: planned tier (struck out when changed) -> chosen tier, plus Nano's difficulty rating.
+function routeChip(d) {
+  const moved = d.planned && d.planned !== d.tier;
+  return `<span class="rt">${esc(d.agent)} ${moved ? `<s>${d.planned}</s>→` : ""}<span class="tier ${d.tier}">${d.tier}</span>${d.difficulty ? `<span class="diff">${d.difficulty}/5</span>` : ""}</span>`;
+}
+function renderSmart(m) {
+  if (!m || !m.decisions) return `<div class="smart"><h4>Smart router</h4><p class="empty">No routing decisions yet. Every new test or playground run is routed by Nano.</p></div>`;
+  const t = m.by_tier;
+  return `<div class="smart"><h4>Smart router · Nano picks the model per request</h4><div class="facts">`
+    + `<div><b>${m.decisions}</b><span>decisions</span></div>`
+    + `<div><b style="color:var(--nano)">${m.down}</b><span>sent to a cheaper model than planned</span></div>`
+    + `<div><b style="color:var(--ultra)">${m.up}</b><span>escalated for hard requests</span></div>`
+    + `<div><b>${orDash(m.avg_difficulty, v => v.toFixed(1))}</b><span>avg difficulty /5</span></div>`
+    + `<div><b>${t.nano}·${t.super}·${t.ultra}</b><span>nano · super · ultra</span></div></div>`
+    + m.recent.map(d => `<div class="decision">${routeChip(d)}<span class="why">${esc(d.why || "")}</span></div>`).join("")
+    + `</div>`;
 }
 
 // ---- Observability logs: one record per input, severity set by fixed rules ----
