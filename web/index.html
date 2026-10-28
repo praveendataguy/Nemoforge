@@ -176,6 +176,9 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .kpi:hover { transform: translateY(-2px); }
 .kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
 .kpi.volume { --g: var(--cyan); }
+.tryBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.tryBar button { min-height: 34px; font-size: 13px; padding: 0 14px; }
+.tryBar span { font: 12px var(--mono); color: var(--muted); }
 /* Agent registry panel */
 .teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .teamHead h3 { margin: 0; }
@@ -248,6 +251,7 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
       <div class="panel hidden playground" id="tryPanel"><h3>Try the finished agent</h3>
+        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span></div>
         <textarea id="tryInput"></textarea><button id="tryBtn">Run</button>
         <div id="tryOut"></div>
       </div>
@@ -277,6 +281,7 @@ const EXAMPLES = [
   "Given a company name, research recent news and write a one-page sales briefing with three talking points and sources.",
   "Turn messy meeting notes into a summary, a decision list and action items with owners and due dates.",
   "Check a job description for biased or exclusionary wording and suggest inclusive rewrites.",
+  "Summarise a long meeting transcript (30 to 60 minutes, 2 or more speakers, Microsoft Teams style with speaker names and timestamps). Output: a 5-line executive summary, key discussion points per topic, decisions made, action items with owner and due date, open questions, and a per-participant contribution note. Only use names and facts that appear in the transcript; write \"not stated\" when an owner or date is missing.",
 ];
 let owner = "", current = null, rounds = [], source = null, needCode = false, replay = false;
 const REPLAY_TIP = "Replay mode: set NEBIUS_API_KEY to start new builds";
@@ -419,6 +424,33 @@ $("buildBtn").onclick = async () => {
   const r = await post("/api/builds", { goal, lite: $("lite").checked, budget_usd: parseFloat($("budget").value) || null });
   if (!r.ok) { $("buildBtn").disabled = false; return alert(await r.text()); }
   watch((await r.json()).id); loadHistory();
+};
+
+// Teams exports transcripts as WebVTT: keep "Name: text", drop cue numbers and timestamps, merge a speaker's consecutive lines.
+function vttToText(raw) {
+  const out = [];
+  for (let line of raw.replace(/\r/g, "").split("\n")) {
+    line = line.trim();
+    if (!line || line === "WEBVTT" || /^NOTE\b/.test(line) || /^\d+$/.test(line) || /-->/.test(line) || /^[0-9a-f-]{36}(\/\d+-\d+)?$/i.test(line)) continue;
+    const m = line.match(/^<v ([^>]+)>(.*?)(<\/v>)?$/);
+    const who = m ? m[1].trim() : null, text = (m ? m[2] : line).replace(/<[^>]+>/g, "").trim();
+    if (!text) continue;
+    const last = out[out.length - 1];
+    if (last && who && last.who === who) last.text += " " + text; else out.push({ who, text });
+  }
+  return out.map(x => (x.who ? x.who + ": " : "") + x.text).join("\n");
+}
+function tryMeta() {
+  const n = $("tryInput").value.length, words = $("tryInput").value.split(/\s+/).filter(Boolean).length;
+  $("tryMeta").textContent = n ? `${n.toLocaleString()} chars · about ${Math.max(1, Math.round(words / 140))} min of talk` + (n > 200000 ? " · too long, max 200,000" : "") : "";
+}
+$("tryInput").oninput = tryMeta;
+$("loadBtn").onclick = () => $("loadFile").click();
+$("loadFile").onchange = async () => {
+  const f = $("loadFile").files[0]; if (!f) return;
+  const raw = await f.text();
+  $("tryInput").value = /^\uFEFF?WEBVTT/.test(raw) || /\.(vtt|srt)$/i.test(f.name) ? vttToText(raw) : raw;
+  $("loadFile").value = ""; tryMeta();
 };
 
 $("tryBtn").onclick = async () => {

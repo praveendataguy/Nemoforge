@@ -51,7 +51,7 @@ def run_agent(
     transcript = f"# Request\n{request}" + (f"\n\n# Work so far\n{prior}" if prior else "")
     steps: list[dict[str, Any]] = []
     for _ in range(cfg.max_agent_steps):
-        reply = llm.chat(agent.tier, system, transcript, max_tokens=2048)
+        reply = llm.chat(agent.tier, system, transcript, max_tokens=4096)
         try:
             action = parse_json(reply)
         except ValueError:
@@ -70,7 +70,7 @@ def run_agent(
         output = action.get("output", reply)
         return {"output": output if isinstance(output, str) else json.dumps(output, indent=2), "steps": steps}
     transcript += "\n\nYou have used all your tool calls. Give your final answer now."
-    reply = llm.chat(agent.tier, system, transcript, max_tokens=2048)
+    reply = llm.chat(agent.tier, system, transcript, max_tokens=4096)
     try:
         action = parse_json(reply)
         output = action.get("output", reply) if isinstance(action, dict) else reply
