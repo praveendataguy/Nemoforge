@@ -61,6 +61,8 @@ class BuildRequest(BaseModel):
 class InvokeRequest(BaseModel):
     # Room for a full 1-hour meeting transcript (about 60k characters).
     input: str = Field(min_length=1, max_length=200_000)
+    # Give the team its earlier playground runs as context.
+    use_memory: bool = False
 
 
 class DeployRequest(BaseModel):
@@ -152,6 +154,14 @@ def get_build(run_id: str) -> dict:
     return {**run.summary(), "events": run.events}
 
 
+@app.get("/api/builds/{run_id}/memory")
+def agent_memory(run_id: str) -> dict:
+    run = registry.runs.get(run_id)
+    if run is None:
+        raise HTTPException(404, "unknown build")
+    return insights.memory(run, settings().builds_dir)
+
+
 @app.get("/api/builds/{run_id}/events")
 async def stream(run_id: str) -> StreamingResponse:
     run = registry.runs.get(run_id)
@@ -173,8 +183,16 @@ def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(d
     cfg = settings()
     started = time.time()
     record = {"t": started, "input": req.input}
+    request = req.input
+    run = registry.runs.get(run_id)
+    if req.use_memory and run is not None:
+        mem = insights.memory(run, cfg.builds_dir)
+        context = insights.memory_context(mem)
+        if context:
+            request = f"{context}\n\n# New request\n{req.input}"
+            record["memory"] = min(len(mem["runs"]), 3)
     try:
-        out = run_system(llm_factory(None, cfg), spec, req.input, cfg)
+        out = run_system(llm_factory(None, cfg), spec, request, cfg)
         record |= {"output": out.get("output", ""), "agents": len(out.get("trace", [])), "routes": [t["route"] for t in out.get("trace", []) if t.get("route")]}
         return out
     except Exception as err:

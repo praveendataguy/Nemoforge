@@ -205,6 +205,41 @@ def _try_records(run: Run, builds_dir: Path) -> list[dict[str, Any]]:
     return out
 
 
+def _clip(text: str, n: int) -> str:
+    text = text or ""
+    return text if len(text) <= n else text[:n] + "..."
+
+
+def memory(run: Run, builds_dir: Path, recent: int = 5) -> dict[str, Any]:
+    """What an agent remembers: lessons from its own build, and its latest playground runs."""
+    lessons: list[dict[str, Any]] = []
+    for e in run.events:
+        d = e.get("data", {})
+        if e.get("stage") == "optimizer" and "changes" in d:
+            lessons.append({"source": "optimizer", "text": e["message"], "changes": d.get("changes", [])})
+        elif e.get("stage") == "healer" and d.get("root_causes"):
+            lessons.append({"source": "healer", "text": e["message"], "changes": d.get("root_causes", [])})
+    runs = []
+    path = invocations_path(builds_dir, run.id)
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                continue
+            if rec.get("output") and not rec.get("error"):
+                runs.append({"t": rec.get("t"), "input": _clip(rec.get("input", ""), 600), "output": _clip(rec["output"], 1200)})
+    return {"lessons": lessons, "runs": runs[-recent:][::-1], "total_runs": len(runs)}
+
+
+def memory_context(mem: dict[str, Any], n: int = 3) -> str:
+    """Earlier runs written as context for the next run (oldest first)."""
+    if not mem["runs"]:
+        return ""
+    parts = [f"## Earlier run {i}\nInput: {r['input']}\nAnswer: {r['output']}" for i, r in enumerate(reversed(mem["runs"][:n]), 1)]
+    return "# Memory: this agent's earlier runs. Use them only when relevant (for example, follow up on open items from a previous meeting).\n\n" + "\n\n".join(parts)
+
+
 def logs(runs: Iterable[Run], builds_dir: Path) -> list[dict[str, Any]]:
     """One record per input NemoForge handled: build goals, graded test cases and playground runs."""
     runs = list(runs)
