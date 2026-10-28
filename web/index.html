@@ -460,7 +460,7 @@ html[data-theme="robot"]:not([data-theme="dark"]) body {
     radial-gradient(800px 500px at 0% -10%, rgba(0,150,214,.2), transparent 60%),
     radial-gradient(800px 500px at 100% 0%, rgba(255,122,0,.12), transparent 60%),
     radial-gradient(900px 600px at 50% 110%, rgba(18,183,106,.14), transparent 60%),
-    linear-gradient(180deg, #eef3f7, #d8e0e8);
+    linear-gradient(180deg, #c3dcec, #9dc0d9);
   background-attachment: fixed;
 }
 /* measurement scale under the header, with a thin safety-orange line */
@@ -506,6 +506,33 @@ html[data-theme="robot"]:not([data-theme="dark"]) .kpi * { color: #9fc3d6; }
 html[data-theme="robot"]:not([data-theme="dark"]) .kpi .val { color: #39ffa0; text-shadow: 0 0 10px rgba(57,255,160,.55); }
 html[data-theme="robot"]:not([data-theme="dark"]) pre, html[data-theme="robot"]:not([data-theme="dark"]) .tool {
   background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #0a1820; color: #9ff5cf; border-color: #2c4658; }
+/* ---- Robot tint: no plain white, icy cyan glass on a blueprint-blue field ---- */
+html[data-theme="robot"]:not([data-theme="dark"]) { --panel: #d9edf8; --panel2: #cfe6f3; --line: #9cc4dc; --bg: #b4d0e3; }
+html[data-theme="robot"]:not([data-theme="dark"]) header { background:
+    repeating-linear-gradient(90deg, rgba(16,32,48,.55) 0 1px, transparent 1px 50px) left bottom / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(16,32,48,.35) 0 1px, transparent 1px 10px) left bottom / 100% 5px no-repeat,
+    linear-gradient(90deg, rgba(196,226,243,.95), rgba(214,232,250,.95) 50%, rgba(206,222,250,.95)); }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel {
+  background:
+    linear-gradient(#0096d6, #0096d6) 6px 6px / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) 6px 6px / 2px 14px no-repeat,
+    linear-gradient(#0096d6, #0096d6) calc(100% - 6px) 6px / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) calc(100% - 6px) 6px / 2px 14px no-repeat,
+    linear-gradient(#0096d6, #0096d6) 6px calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) 6px calc(100% - 6px) / 2px 14px no-repeat,
+    linear-gradient(#0096d6, #0096d6) calc(100% - 6px) calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) calc(100% - 6px) calc(100% - 6px) / 2px 14px no-repeat,
+    linear-gradient(rgba(0,120,180,.07) 1px, transparent 1px) 0 0 / 12px 12px,
+    linear-gradient(90deg, rgba(0,120,180,.07) 1px, transparent 1px) 0 0 / 12px 12px,
+    linear-gradient(160deg, rgba(226,244,253,.96), rgba(207,231,245,.96) 60%, rgba(214,226,250,.96));
+  border-color: #8fbcd8; box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 0 0 1px rgba(0,150,214,.08), 0 12px 28px -18px rgba(0,60,110,.6); }
+html[data-theme="robot"]:not([data-theme="dark"]) .overlay > .panel { background-color: #d3e9f6; }
+html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea, html[data-theme="robot"]:not([data-theme="dark"]) .playground textarea,
+html[data-theme="robot"]:not([data-theme="dark"]) .row input, html[data-theme="robot"]:not([data-theme="dark"]) .opts input[type=number] { background: #eaf6fc; border-color: #84b6d4; }
+html[data-theme="robot"]:not([data-theme="dark"]) button.ghost:not([data-t]) { background: linear-gradient(180deg, #e3f3fc, #bfdcee); border-color: #84b6d4; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 0 #9cc4dc; }
+html[data-theme="robot"]:not([data-theme="dark"]) .themes { background: rgba(214,236,248,.8); }
+html[data-theme="robot"]:not([data-theme="dark"]) .chip, html[data-theme="robot"]:not([data-theme="dark"]) .eyebrow { background: #ddeff9; border-color: #8fbcd8; }
+html[data-theme="robot"]:not([data-theme="dark"]) .agent, html[data-theme="robot"]:not([data-theme="dark"]) .heal,
+html[data-theme="robot"]:not([data-theme="dark"]) .owner, html[data-theme="robot"]:not([data-theme="dark"]) .pipe .node,
+html[data-theme="robot"]:not([data-theme="dark"]) .metric { background: linear-gradient(180deg, rgba(232,246,253,.95), rgba(212,234,247,.95)); border-color: #9cc4dc; }
+html[data-theme="robot"]:not([data-theme="dark"]) .spot { background: linear-gradient(135deg, rgba(18,183,106,.18), rgba(0,180,230,.16) 60%, rgba(91,107,255,.12)); border-color: rgba(18,183,106,.5); }
+html[data-theme="robot"]:not([data-theme="dark"]) .logRow:hover { background: #cce5f3; } html[data-theme="robot"]:not([data-theme="dark"]) .logRow.sel { background: #bcdcef; }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff7a00; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
