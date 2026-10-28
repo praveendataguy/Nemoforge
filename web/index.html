@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="aurora">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -280,6 +280,8 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .overlay > .panel { background: rgba(9,14,19,.96); }
 pre { background: rgba(3,6,9,.8); }
 ::selection { background: rgba(118,185,0,.35); }
+</style>
+<style id="lightTheme">
 /* ---- Theme: Holo lab (light). Bright blueprint grid, frosted glass panels, NVIDIA green + electric cyan + violet ---- */
 :root {
   --bg: #eef3f8; --panel: rgba(255,255,255,.82); --panel2: #f6f9fc; --line: #d9e2ec; --text: #0b1b2b; --muted: #556677;
@@ -346,11 +348,68 @@ pre, .tool { background: #f3f7fb; color: #12263a; border-color: var(--line); }
 .timeline li.healer::before { background: var(--heal); }
 ::selection { background: rgba(0,145,199,.2); }
 </style>
+<style id="colourThemes">
+/* ---- Colour themes on top of the light base. Each sets four vivid colours; html[data-theme] picks one ---- */
+html[data-theme="aurora"] { --c1: #ff3ea5; --c2: #7a45f0; --c3: #00b8ff; --c4: #6cc800; --bg: #f6f2ff; }
+html[data-theme="sunset"] { --c1: #ff6a00; --c2: #ff2d75; --c3: #a033ff; --c4: #ffb800; --bg: #fff5ee; }
+html[data-theme="ocean"]  { --c1: #00c2a8; --c2: #0070f3; --c3: #00b8ff; --c4: #76b900; --bg: #effaff; }
+html[data-theme]:not([data-theme="dark"]) body {
+  background:
+    radial-gradient(720px 520px at -4% -6%, color-mix(in srgb, var(--c1) 38%, transparent), transparent 62%),
+    radial-gradient(760px 560px at 104% -4%, color-mix(in srgb, var(--c3) 36%, transparent), transparent 62%),
+    radial-gradient(820px 620px at 50% 46%, color-mix(in srgb, var(--c2) 16%, transparent), transparent 65%),
+    radial-gradient(760px 560px at 0% 100%, color-mix(in srgb, var(--c4) 26%, transparent), transparent 62%),
+    radial-gradient(760px 560px at 100% 100%, color-mix(in srgb, var(--c1) 22%, transparent), transparent 62%),
+    linear-gradient(color-mix(in srgb, var(--c2) 9%, transparent) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, color-mix(in srgb, var(--c2) 9%, transparent) 1px, transparent 1px) 0 0 / 44px 44px,
+    var(--bg);
+  background-attachment: fixed;
+}
+html[data-theme]:not([data-theme="dark"]) header { background: rgba(255,255,255,.72); border-image: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)) 1; border-bottom-width: 2px; }
+html[data-theme]:not([data-theme="dark"]) header h1 span,
+html[data-theme]:not([data-theme="dark"]) .hero h2 { background: linear-gradient(92deg, var(--c1), var(--c2) 35%, var(--c3) 70%, var(--c4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-theme]:not([data-theme="dark"]) .hero h2 { background: linear-gradient(92deg, #0b1b2b 0%, var(--c2) 30%, var(--c1) 55%, var(--c3) 80%, var(--c4)); -webkit-background-clip: text; background-clip: text; }
+html[data-theme]:not([data-theme="dark"]) header h1::before { background: conic-gradient(from 200deg, var(--c1), var(--c2), var(--c3), var(--c4), var(--c1)); box-shadow: 0 0 18px color-mix(in srgb, var(--c2) 60%, transparent); }
+html[data-theme]:not([data-theme="dark"]) .eyebrow { color: var(--c2); border-color: color-mix(in srgb, var(--c2) 45%, transparent); background: rgba(255,255,255,.75); }
+html[data-theme]:not([data-theme="dark"]) .eyebrow::before { background: var(--c1); box-shadow: 0 0 10px var(--c1); }
+html[data-theme]:not([data-theme="dark"]) button:not(.ghost) { background: linear-gradient(135deg, var(--c1), var(--c2) 50%, var(--c3)); color: #fff; box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--c2) 80%, transparent); }
+html[data-theme]:not([data-theme="dark"]) button:not(.ghost):not(:disabled):hover { box-shadow: 0 12px 32px -8px color-mix(in srgb, var(--c1) 85%, transparent); }
+html[data-theme]:not([data-theme="dark"]) .panel { background: rgba(255,255,255,.8); }
+html[data-theme]:not([data-theme="dark"]) .panel::before { height: 3px; background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)); }
+/* every panel gets its own accent colour, cycling through the theme's four */
+html[data-theme]:not([data-theme="dark"]) .panel { --pc: var(--c2); }
+html[data-theme]:not([data-theme="dark"]) aside .panel:nth-child(4n+1), html[data-theme]:not([data-theme="dark"]) section .panel:nth-child(4n+1) { --pc: var(--c1); }
+html[data-theme]:not([data-theme="dark"]) aside .panel:nth-child(4n+2), html[data-theme]:not([data-theme="dark"]) section .panel:nth-child(4n+2) { --pc: var(--c2); }
+html[data-theme]:not([data-theme="dark"]) aside .panel:nth-child(4n+3), html[data-theme]:not([data-theme="dark"]) section .panel:nth-child(4n+3) { --pc: var(--c3); }
+html[data-theme]:not([data-theme="dark"]) aside .panel:nth-child(4n+4), html[data-theme]:not([data-theme="dark"]) section .panel:nth-child(4n+4) { --pc: var(--c4); }
+html[data-theme]:not([data-theme="dark"]) .panel h3 { color: color-mix(in srgb, var(--pc) 70%, #0b1b2b); }
+html[data-theme]:not([data-theme="dark"]) .panel h3::before { background: var(--pc); box-shadow: 0 0 10px var(--pc); }
+html[data-theme]:not([data-theme="dark"]) .panel { box-shadow: 0 14px 34px -22px color-mix(in srgb, var(--pc) 70%, transparent), 0 2px 6px -2px rgba(15,40,70,.08); border-color: color-mix(in srgb, var(--pc) 22%, #d9e2ec); }
+html[data-theme]:not([data-theme="dark"]) .kpi { background: linear-gradient(180deg, color-mix(in srgb, var(--g) 12%, #fff), #fff 70%); border-top: 3px solid var(--g); }
+html[data-theme]:not([data-theme="dark"]) .kpi .val { color: color-mix(in srgb, var(--g) 55%, #0b1b2b); }
+html[data-theme]:not([data-theme="dark"]) .kpi.volume { --g: var(--c3); } html[data-theme]:not([data-theme="dark"]) .kpi.quality { --g: var(--c4); }
+html[data-theme]:not([data-theme="dark"]) .kpi.cost { --g: var(--c2); } html[data-theme]:not([data-theme="dark"]) .kpi.risk { --g: var(--c1); }
+html[data-theme]:not([data-theme="dark"]) .spot { border-color: color-mix(in srgb, var(--c2) 40%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--c1) 14%, #fff), color-mix(in srgb, var(--c3) 12%, #fff) 60%, #fff); }
+html[data-theme]:not([data-theme="dark"]) .avatar { background: conic-gradient(from 200deg, var(--c1), var(--c2), var(--c3), var(--c4), var(--c1)); color: #fff; }
+html[data-theme]:not([data-theme="dark"]) .chip.ok { color: color-mix(in srgb, var(--c4) 70%, #0b1b2b); border-color: var(--c4); background: color-mix(in srgb, var(--c4) 12%, #fff); }
+html[data-theme]:not([data-theme="dark"]) .route-head b { background: linear-gradient(90deg, var(--c2), var(--c1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-theme]:not([data-theme="dark"]) .goal textarea:focus { border-color: var(--c2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c2) 20%, transparent), 0 0 30px -8px var(--c1); }
+/* Theme picker */
+.themes { display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.6); }
+html[data-theme="dark"] .themes { background: rgba(255,255,255,.04); }
+.themes button { width: 22px; height: 22px; min-height: 0; padding: 0; border-radius: 50%; border: 2px solid transparent; box-shadow: none; transform: none; }
+.themes button.on { border-color: var(--text); }
+.themes button[data-t="aurora"] { background: conic-gradient(#ff3ea5, #7a45f0, #00b8ff, #6cc800, #ff3ea5); }
+.themes button[data-t="sunset"] { background: conic-gradient(#ff6a00, #ff2d75, #a033ff, #ffb800, #ff6a00); }
+.themes button[data-t="ocean"] { background: conic-gradient(#00c2a8, #0070f3, #00b8ff, #76b900, #00c2a8); }
+.themes button[data-t="dark"] { background: conic-gradient(#04070a, #76b900, #00d9ff, #04070a); }
+</style>
 </head>
 <body>
 <header>
   <h1>Nemo<span>Forge</span></h1>
   <button class="ghost logsBtn" id="logsBtn">Observability logs</button>
+  <div class="themes" id="themes" role="group" aria-label="Colour theme"><button class="ghost" data-t="aurora" title="Aurora" aria-label="Aurora theme"></button><button class="ghost" data-t="sunset" title="Sunset" aria-label="Sunset theme"></button><button class="ghost" data-t="ocean" title="Ocean" aria-label="Ocean theme"></button><button class="ghost" data-t="dark" title="Dark" aria-label="Dark theme"></button></div>
   <div class="chips" id="chips"></div>
 </header>
 <main>
@@ -782,6 +841,16 @@ function showLog(id) {
   $("logOpen").onclick = () => { closeLogs(); watch(r.build); window.scrollTo(0, 0); };
 }
 $("logsBtn").onclick = () => openLogs();
+// ---- Colour theme picker (remembered per browser) ----
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  $("lightTheme").disabled = t === "dark";
+  $("themes").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  try { localStorage.setItem("nf-theme", t); } catch (e) {}
+}
+$("themes").querySelectorAll("button").forEach(b => b.onclick = () => setTheme(b.dataset.t));
+let savedTheme = "aurora"; try { savedTheme = localStorage.getItem("nf-theme") || "aurora"; } catch (e) {}
+setTheme(["aurora", "sunset", "ocean", "dark"].includes(savedTheme) ? savedTheme : "aurora");
 $("logsClose").onclick = closeLogs;
 $("logsView").onclick = e => { if (e.target === $("logsView")) closeLogs(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("logsView").classList.contains("hidden")) closeLogs(); });
