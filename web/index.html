@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NemoForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0d0f0c; --panel: #151813; --panel2: #1b1f18; --line: #2a3026; --text: #e8ebe4; --muted: #9aa393;
@@ -126,6 +128,58 @@ header .logsBtn { min-height: 32px; font-size: 13px; padding: 0 14px; }
 .kpi.click { cursor: pointer; } .kpi.click:hover { background: var(--line); }
 .kpi.volume { --g: var(--nano); } .kpi.quality { --g: var(--accent); } .kpi.cost { --g: var(--super); } .kpi.risk { --g: var(--high); }
 .kpiNote { font-size: 12px; color: var(--muted); margin-top: 10px; }
+/* ---- Theme: GPU control room (NVIDIA green + electric cyan on deep space black) ---- */
+:root {
+  --bg: #04070a; --panel: rgba(12,18,24,.78); --panel2: rgba(18,27,35,.85); --line: #1c2a31; --text: #eaf3f0; --muted: #8ea3a6;
+  --accent: #76b900; --accent2: #a8ff3e; --cyan: #00d9ff; --accent-soft: rgba(118,185,0,.16);
+  --nano: #34d3ff; --super: #b892ff; --ultra: #76b900; --warn: #ffb547;
+  --glow: 0 0 0 1px rgba(118,185,0,.08), 0 10px 40px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04);
+}
+body {
+  background:
+    radial-gradient(900px 500px at 8% -10%, rgba(118,185,0,.18), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(0,217,255,.13), transparent 60%),
+    linear-gradient(rgba(118,185,0,.035) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(118,185,0,.035) 1px, transparent 1px) 0 0 / 44px 44px,
+    var(--bg);
+  background-attachment: fixed;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+}
+header { position: sticky; top: 0; z-index: 5; background: rgba(4,7,10,.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid transparent; border-image: linear-gradient(90deg, transparent, var(--accent), var(--cyan), transparent) 1; }
+header h1 { font: 800 20px/1 "Space Grotesk", "Inter", system-ui; letter-spacing: .5px; display: flex; align-items: center; }
+header h1::before { content: ""; width: 22px; height: 22px; margin-right: 10px; border-radius: 6px; background: conic-gradient(from 210deg, var(--accent), var(--cyan), var(--accent2), var(--accent)); box-shadow: 0 0 18px rgba(118,185,0,.6); }
+header h1 span { background: linear-gradient(90deg, var(--accent2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.chip { background: rgba(255,255,255,.02); }
+.chip.ok { box-shadow: 0 0 12px -2px rgba(118,185,0,.5); }
+.chip.replay { background: linear-gradient(90deg, rgba(118,185,0,.15), rgba(0,217,255,.12)); border-color: rgba(0,217,255,.45); color: #cfefff; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 600 11.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent2); padding: 5px 12px; border: 1px solid rgba(118,185,0,.4); border-radius: 999px; background: rgba(118,185,0,.08); margin-top: 18px; }
+.eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 10px var(--accent2); animation: pulse 1.8s infinite; }
+.hero h2 { font: 800 clamp(30px, 4.6vw, 52px)/1.05 "Space Grotesk", "Inter", system-ui; letter-spacing: -.02em; margin: 16px 0 12px;
+  background: linear-gradient(92deg, #ffffff 0%, #d9ffb0 40%, var(--accent) 65%, var(--cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { font-size: 16px; max-width: 760px; }
+.hero p b { color: var(--text); font-weight: 600; }
+.goal textarea { background: rgba(8,13,18,.85); border-color: #23343c; transition: border-color .2s, box-shadow .2s; }
+.goal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(118,185,0,.18), 0 0 30px -6px rgba(118,185,0,.55); }
+button { background: linear-gradient(135deg, var(--accent2), var(--accent) 55%, #4f8a00); color: #061003; font-weight: 700; box-shadow: 0 0 24px -6px rgba(118,185,0,.8); transition: transform .12s, box-shadow .2s, filter .2s; }
+button:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 0 34px -4px rgba(118,185,0,.95); filter: brightness(1.06); }
+button.ghost { background: rgba(255,255,255,.02); box-shadow: none; color: var(--text); }
+button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 18px -6px rgba(0,217,255,.8); filter: none; }
+.panel { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--glow); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+.panel::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(118,185,0,.7), rgba(0,217,255,.6), transparent); }
+.panel h3 { font: 600 12px var(--mono); letter-spacing: .14em; color: #b9c9c6; display: flex; align-items: center; gap: 8px; }
+.panel h3::before { content: ""; width: 6px; height: 6px; background: var(--accent); box-shadow: 0 0 8px var(--accent); transform: rotate(45deg); flex: none; }
+.logHead h3::before { display: none; }
+.agent { background: linear-gradient(180deg, rgba(24,36,44,.9), rgba(14,21,27,.9)); }
+.big { font-family: "Space Grotesk", system-ui; }
+#holdBig { color: var(--warn); text-shadow: 0 0 18px rgba(255,181,71,.35); } #trainBig { text-shadow: 0 0 18px rgba(52,211,255,.35); }
+.kpi { background: linear-gradient(180deg, rgba(24,34,42,.92), rgba(12,18,24,.92)); border-top: 2px solid var(--g); box-shadow: 0 -8px 24px -14px var(--g), inset 0 1px 0 rgba(255,255,255,.03); transition: transform .15s; }
+.kpi:hover { transform: translateY(-2px); }
+.kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
+.kpi.volume { --g: var(--cyan); }
+.overlay { background: rgba(2,5,8,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.overlay > .panel { background: rgba(9,14,19,.96); }
+pre { background: rgba(3,6,9,.8); }
+::selection { background: rgba(118,185,0,.35); }
 </style>
 </head>
 <body>
@@ -136,8 +190,9 @@ header .logsBtn { min-height: 32px; font-size: 13px; padding: 0 14px; }
 </header>
 <main>
   <section class="hero">
+    <div class="eyebrow">NVIDIA Nemotron · Nebius Token Factory</div>
     <h2>Describe a job. Get a tested AI agent team.</h2>
-    <p>Nemotron Ultra designs the team, Super writes and tests its tools, Nano runs it. Every version is scored on tests it has never seen before it ships.</p>
+    <p><b>Nemotron Ultra</b> designs the team, <b>Super</b> writes and tests its tools, <b>Nano</b> runs it. Every version is scored on tests it has never seen before it ships.</p>
     <div class="goal">
       <textarea id="goal" placeholder="e.g. Read a customer support email, work out what they need, check our refund policy rules and draft a reply."></textarea>
       <button id="buildBtn">Build it</button>
