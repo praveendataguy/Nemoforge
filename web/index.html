@@ -437,7 +437,7 @@ html[data-theme="robot"]:not([data-theme="dark"]) .panel h3::before { width: 8px
 @keyframes led { 50% { opacity: .55; } }
 html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost) { background: linear-gradient(180deg, #ff9a3c, #ff7a00 55%, #e45f00); color: #fff; border: 1px solid #c95200; text-shadow: 0 1px 0 rgba(0,0,0,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 4px 0 #b84a00, 0 10px 20px -8px rgba(255,122,0,.8); font-family: var(--mono); letter-spacing: .04em; text-transform: uppercase; }
 html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost):not(:disabled):active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 1px 0 #b84a00; }
-html[data-theme="robot"]:not([data-theme="dark"]) button.ghost { background: linear-gradient(180deg, #ffffff, #e6ecf2); border: 1px solid #aebbc8; box-shadow: inset 0 1px 0 #fff, 0 2px 0 #c3ced9; }
+html[data-theme="robot"]:not([data-theme="dark"]) button.ghost:not([data-t]) { background: linear-gradient(180deg, #ffffff, #e6ecf2); border: 1px solid #aebbc8; box-shadow: inset 0 1px 0 #fff, 0 2px 0 #c3ced9; }
 html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea, html[data-theme="robot"]:not([data-theme="dark"]) .playground textarea, html[data-theme="robot"]:not([data-theme="dark"]) .row input { background: #f7fafc; border: 1px solid #aebbc8; box-shadow: inset 0 2px 4px rgba(16,32,48,.08); font-family: var(--mono); font-size: 14px; }
 html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea:focus { border-color: #0096d6; box-shadow: inset 0 2px 4px rgba(16,32,48,.08), 0 0 0 3px rgba(0,150,214,.2), 0 0 24px -6px rgba(0,208,255,.8); }
 html[data-theme="robot"]:not([data-theme="dark"]) .chip { background: #f3f6f9; border-color: #b7c3cf; }
@@ -448,6 +448,64 @@ html[data-theme="robot"]:not([data-theme="dark"]) .kpi .grp::before { content: "
 html[data-theme="robot"]:not([data-theme="dark"]) .route-head b { font-family: var(--mono); background: none; color: #0a7a47; -webkit-text-fill-color: currentColor; text-shadow: 0 0 14px rgba(18,183,106,.35); }
 html[data-theme="robot"]:not([data-theme="dark"]) .avatar { background: radial-gradient(circle at 35% 40%, #fff 0 2px, #00d0ff 3px 4px, transparent 5px), radial-gradient(circle at 65% 40%, #fff 0 2px, #00d0ff 3px 4px, transparent 5px), linear-gradient(180deg, #8fa1b3, #4c5d6e); color: transparent; box-shadow: 0 0 0 2px #102030; }
 html[data-theme="robot"]:not([data-theme="dark"]) pre, html[data-theme="robot"]:not([data-theme="dark"]) .tool { background: #102030; color: #b8f5d4; border-color: #102030; }
+/* ---- Robot lab layer: graph paper, instrument brackets, scope readouts, measurement scale ---- */
+html[data-theme="robot"]:not([data-theme="dark"]) body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300' fill='none'%3E%3Cpath d='M0 150 C 50 70 100 70 150 150 S 250 230 300 150 S 400 70 450 150 S 550 230 600 150' stroke='%230096d6' stroke-opacity='.16' stroke-width='2'/%3E%3Cpath d='M0 150 C 75 110 150 110 225 150 S 375 190 450 150 S 560 120 600 150' stroke='%2312b76a' stroke-opacity='.14' stroke-width='1.5' stroke-dasharray='4 4'/%3E%3Cg stroke='%235b6bff' stroke-opacity='.18' stroke-width='1.5'%3E%3Cpath d='M480 40l17 10v20l-17 10-17-10V50zM497 50l17-10 17 10v20l-17 10M514 80v18M463 50l-14-8'/%3E%3C/g%3E%3Cg fill='%235b6bff' fill-opacity='.25'%3E%3Ccircle cx='514' cy='98' r='3'/%3E%3Ccircle cx='449' cy='42' r='3'/%3E%3C/g%3E%3Ctext x='24' y='272' font-family='monospace' font-size='12' fill='%230b6e9c' fill-opacity='.28'%3Ef(x) = A·sin(ωt + φ)%3C/text%3E%3Ctext x='360' y='272' font-family='monospace' font-size='12' fill='%230b6e9c' fill-opacity='.28'%3E∇·E = ρ/ε₀%3C/text%3E%3C/svg%3E") 0 0 / 600px 300px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' fill='none' stroke='%230096d6' stroke-opacity='.16' stroke-width='1.5'%3E%3Cpath d='M0 40h40l20 20h40M100 60v40l20 20h40M40 160v-30l20-20h30M120 0v20l-20 20'/%3E%3Ccircle cx='100' cy='60' r='3' fill='%230096d6' fill-opacity='.3'/%3E%3Ccircle cx='160' cy='120' r='3' fill='%2312b76a' fill-opacity='.35'/%3E%3C/svg%3E") 80px 40px / 160px 160px,
+    linear-gradient(rgba(0,120,180,.13) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(90deg, rgba(0,120,180,.13) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(rgba(0,120,180,.06) 1px, transparent 1px) 0 0 / 10px 10px,
+    linear-gradient(90deg, rgba(0,120,180,.06) 1px, transparent 1px) 0 0 / 10px 10px,
+    radial-gradient(800px 500px at 0% -10%, rgba(0,150,214,.2), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(255,122,0,.12), transparent 60%),
+    radial-gradient(900px 600px at 50% 110%, rgba(18,183,106,.14), transparent 60%),
+    linear-gradient(180deg, #eef3f7, #d8e0e8);
+  background-attachment: fixed;
+}
+/* measurement scale under the header, with a thin safety-orange line */
+html[data-theme="robot"]:not([data-theme="dark"]) header { border-image: none; border-bottom: 2px solid #ff7a00;
+  background:
+    repeating-linear-gradient(90deg, rgba(16,32,48,.55) 0 1px, transparent 1px 50px) left bottom / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(16,32,48,.35) 0 1px, transparent 1px 10px) left bottom / 100% 5px no-repeat,
+    linear-gradient(180deg, rgba(246,249,252,.94), rgba(226,233,240,.92)); }
+/* panels: instrument casing with cyan corner brackets and a channel number */
+html[data-theme="robot"]:not([data-theme="dark"]) main { counter-reset: ch; }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel {
+  counter-increment: ch;
+  background:
+    linear-gradient(#0096d6, #0096d6) 6px 6px / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) 6px 6px / 2px 14px no-repeat,
+    linear-gradient(#0096d6, #0096d6) calc(100% - 6px) 6px / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) calc(100% - 6px) 6px / 2px 14px no-repeat,
+    linear-gradient(#0096d6, #0096d6) 6px calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) 6px calc(100% - 6px) / 2px 14px no-repeat,
+    linear-gradient(#0096d6, #0096d6) calc(100% - 6px) calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) calc(100% - 6px) calc(100% - 6px) / 2px 14px no-repeat,
+    linear-gradient(rgba(0,120,180,.05) 1px, transparent 1px) 0 0 / 12px 12px,
+    linear-gradient(90deg, rgba(0,120,180,.05) 1px, transparent 1px) 0 0 / 12px 12px,
+    linear-gradient(180deg, rgba(252,253,254,.97), rgba(240,244,248,.97));
+  border-radius: 6px;
+}
+html[data-theme="robot"]:not([data-theme="dark"]) .panel h3 { text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel > h3::after, html[data-theme="robot"]:not([data-theme="dark"]) .panel > .teamHead h3::after {
+  content: "CH." counter(ch, decimal-leading-zero); margin-left: 10px; padding: 1px 6px; border: 1px solid #9fc6dc; border-radius: 3px;
+  font-size: 10px; letter-spacing: .1em; color: #0b6e9c; background: #eef7fc; vertical-align: 2px; }
+/* hero: oscilloscope trace under the headline */
+html[data-theme="robot"]:not([data-theme="dark"]) .hero h2 { padding-bottom: 26px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%2312b76a' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #102030 0%, #2a4a66 30%, #0096d6 55%, #12b76a 78%, #ff7a00);
+  -webkit-background-clip: padding-box, text; background-clip: padding-box, text; }
+/* KPI cards: dark instrument displays with scope-green readouts and scanlines */
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+    linear-gradient(rgba(57,255,160,.07) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(90deg, rgba(57,255,160,.07) 1px, transparent 1px) 0 0 / 16px 16px,
+    radial-gradient(120% 90% at 50% 0%, #15303f, #0a1820);
+  border: 1px solid #2c4658; border-top: 3px solid var(--g); color: #bfe9ff;
+  box-shadow: inset 0 0 18px rgba(0,0,0,.6), 0 3px 0 #9fb0c0; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi * { color: #9fc3d6; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .val { color: #39ffa0; text-shadow: 0 0 10px rgba(57,255,160,.55); }
+html[data-theme="robot"]:not([data-theme="dark"]) pre, html[data-theme="robot"]:not([data-theme="dark"]) .tool {
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #0a1820; color: #9ff5cf; border-color: #2c4658; }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff7a00; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
