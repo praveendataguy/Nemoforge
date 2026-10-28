@@ -514,10 +514,10 @@ html[data-theme="robot"]:not([data-theme="dark"]) header { background:
     linear-gradient(90deg, rgba(196,226,243,.95), rgba(214,232,250,.95) 50%, rgba(206,222,250,.95)); }
 html[data-theme="robot"]:not([data-theme="dark"]) .panel {
   background:
-    linear-gradient(#0096d6, #0096d6) 6px 6px / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) 6px 6px / 2px 14px no-repeat,
-    linear-gradient(#0096d6, #0096d6) calc(100% - 6px) 6px / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) calc(100% - 6px) 6px / 2px 14px no-repeat,
-    linear-gradient(#0096d6, #0096d6) 6px calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) 6px calc(100% - 6px) / 2px 14px no-repeat,
-    linear-gradient(#0096d6, #0096d6) calc(100% - 6px) calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#0096d6, #0096d6) calc(100% - 6px) calc(100% - 6px) / 2px 14px no-repeat,
+    linear-gradient(#76b900, #76b900) 6px 6px / 14px 2px no-repeat, linear-gradient(#76b900, #76b900) 6px 6px / 2px 14px no-repeat,
+    linear-gradient(#76b900, #76b900) calc(100% - 6px) 6px / 14px 2px no-repeat, linear-gradient(#76b900, #76b900) calc(100% - 6px) 6px / 2px 14px no-repeat,
+    linear-gradient(#76b900, #76b900) 6px calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#76b900, #76b900) 6px calc(100% - 6px) / 2px 14px no-repeat,
+    linear-gradient(#76b900, #76b900) calc(100% - 6px) calc(100% - 6px) / 14px 2px no-repeat, linear-gradient(#76b900, #76b900) calc(100% - 6px) calc(100% - 6px) / 2px 14px no-repeat,
     linear-gradient(rgba(0,120,180,.07) 1px, transparent 1px) 0 0 / 12px 12px,
     linear-gradient(90deg, rgba(0,120,180,.07) 1px, transparent 1px) 0 0 / 12px 12px,
     linear-gradient(160deg, rgba(226,244,253,.96), rgba(207,231,245,.96) 60%, rgba(214,226,250,.96));
@@ -533,6 +533,34 @@ html[data-theme="robot"]:not([data-theme="dark"]) .owner, html[data-theme="robot
 html[data-theme="robot"]:not([data-theme="dark"]) .metric { background: linear-gradient(180deg, rgba(232,246,253,.95), rgba(212,234,247,.95)); border-color: #9cc4dc; }
 html[data-theme="robot"]:not([data-theme="dark"]) .spot { background: linear-gradient(135deg, rgba(18,183,106,.18), rgba(0,180,230,.16) 60%, rgba(91,107,255,.12)); border-color: rgba(18,183,106,.5); }
 html[data-theme="robot"]:not([data-theme="dark"]) .logRow:hover { background: #cce5f3; } html[data-theme="robot"]:not([data-theme="dark"]) .logRow.sel { background: #bcdcef; }
+/* ---- NVIDIA green accents across the robot theme ---- */
+html[data-theme="robot"]:not([data-theme="dark"]) { --c3: #76b900; --nv: #76b900; --accent: #76b900; --accent2: #5a8f00; }
+html[data-theme="robot"]:not([data-theme="dark"]) header { border-bottom-color: #76b900; box-shadow: 0 2px 0 rgba(118,185,0,.25), 0 6px 24px -18px rgba(15,40,70,.5); }
+html[data-theme="robot"]:not([data-theme="dark"]) header h1 span { background: none; -webkit-text-fill-color: #5a8f00; color: #5a8f00; }
+html[data-theme="robot"]:not([data-theme="dark"]) header h1::before { box-shadow: 0 0 0 2px #102030, 0 0 14px rgba(118,185,0,.8); }
+html[data-theme="robot"]:not([data-theme="dark"]) .eyebrow { color: #4f7f00; border-color: #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .eyebrow::before { background: #76b900; box-shadow: 0 0 8px #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%2376b900' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #102030 0%, #1f4560 35%, #0086c0 60%, #5a9a00 85%, #76b900);
+  -webkit-background-clip: padding-box, text; background-clip: padding-box, text; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero p b { color: #4f7f00; }
+html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost) { background: linear-gradient(180deg, #8fd400, #76b900 55%, #5f9600); color: #0b1a05; border: 1px solid #4f7f00; text-shadow: 0 1px 0 rgba(255,255,255,.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 4px 0 #4a7400, 0 10px 22px -8px rgba(118,185,0,.85); }
+html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost):not(:disabled):active { box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 1px 0 #4a7400; }
+html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea:focus { border-color: #76b900; box-shadow: inset 0 2px 4px rgba(16,32,48,.08), 0 0 0 3px rgba(118,185,0,.25), 0 0 24px -6px rgba(118,185,0,.9); }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel { border-top-color: #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel::before { background: linear-gradient(90deg, #76b900, var(--pc) 45%, color-mix(in srgb, var(--pc) 30%, transparent)); }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel > h3::after, html[data-theme="robot"]:not([data-theme="dark"]) .panel > .teamHead h3::after { color: #3f6600; border-color: #9fd24a; background: #eaf7d6; }
+html[data-theme="robot"]:not([data-theme="dark"]) .chip.ok { color: #3f6600; border-color: #76b900; background: #eef8de; box-shadow: 0 0 10px -4px #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi { border-top-color: #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .val { color: #9be22c; text-shadow: 0 0 10px rgba(118,185,0,.65); }
+html[data-theme="robot"]:not([data-theme="dark"]) .kpi .grp::before { background: #76b900; box-shadow: 0 0 6px #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .route-head b { color: #4f7f00; text-shadow: 0 0 14px rgba(118,185,0,.4); }
+html[data-theme="robot"]:not([data-theme="dark"]) pre, html[data-theme="robot"]:not([data-theme="dark"]) .tool { color: #b6f06a; border-left: 3px solid #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #76b900; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::selection { background: #76b900; color: #0b1a05; }
+html[data-theme="robot"]:not([data-theme="dark"]) a { color: #4f7f00; }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff7a00; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
