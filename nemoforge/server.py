@@ -9,6 +9,7 @@ import hmac
 import json
 import os
 import threading
+import time
 import traceback
 from pathlib import Path
 from typing import Callable
@@ -18,6 +19,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from . import deploy as deployer
+from . import insights
 from .config import Settings, settings
 from .events import Run, registry
 from .forge import build
@@ -125,6 +127,16 @@ def list_builds() -> list[dict]:
     return registry.list()
 
 
+@app.get("/api/logs")
+def logs() -> list[dict]:
+    return insights.logs(list(registry.runs.values()), settings().builds_dir)
+
+
+@app.get("/api/stats")
+def stats() -> dict:
+    return insights.stats(list(registry.runs.values()), settings().builds_dir)
+
+
 @app.get("/api/builds/{run_id}")
 def get_build(run_id: str) -> dict:
     run = registry.runs.get(run_id)
@@ -152,8 +164,20 @@ def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(d
     _guard(x_access_code)
     spec = SystemSpec.load(_build_dir(run_id) / "spec.json")
     cfg = settings()
-    out = run_system(llm_factory(None, cfg), spec, req.input, cfg)
-    return out
+    started = time.time()
+    record = {"t": started, "input": req.input}
+    try:
+        out = run_system(llm_factory(None, cfg), spec, req.input, cfg)
+        record |= {"output": out.get("output", ""), "agents": len(out.get("trace", []))}
+        return out
+    except Exception as err:
+        record["error"] = f"{type(err).__name__}: {err}"
+        raise
+    finally:
+        # Every playground input is kept as an observability record.
+        record["ms"] = int((time.time() - started) * 1000)
+        with insights.invocations_path(cfg.builds_dir, run_id).open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, default=str) + "\n")
 
 
 @app.post("/api/builds/{run_id}/deploy")

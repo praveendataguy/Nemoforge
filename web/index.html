@@ -89,11 +89,49 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
 .empty { color: var(--muted); font-size: 14px; }
 .history a { color: var(--text); text-decoration: none; display: block; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .history a span { color: var(--muted); font: 11px var(--mono); float: right; }
+/* Observability logs */
+:root { --crit: #ff5d5d; --high: #ff9f43; --med: #f2d24b; --low: #6fc3ff; --info: #9aa393; }
+header .logsBtn { min-height: 32px; font-size: 13px; padding: 0 14px; }
+.sev { display: inline-block; font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .05em; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.sev::before { content: "\25CF  "; }
+.sev.critical { color: var(--crit); } .sev.high { color: var(--high); } .sev.medium { color: var(--med); } .sev.low { color: var(--low); } .sev.info { color: var(--info); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 10; display: flex; justify-content: center; padding: 24px 16px; overflow-y: auto; }
+.overlay > .panel { width: 100%; max-width: 1240px; margin: 0; align-self: flex-start; }
+.logHead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.logHead h3 { margin: 0; }
+.logHead .close { margin-left: auto; min-height: 32px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.filters button { min-height: 30px; font-size: 12.5px; padding: 0 12px; border-radius: 999px; }
+.filters button.on { border-color: var(--text); background: var(--line); }
+.logBody { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 900px) { .logBody { grid-template-columns: 1fr; } }
+.logList { max-height: 70vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; }
+.logRow { display: grid; grid-template-columns: 92px 1fr; gap: 4px 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13px; }
+.logRow:hover { background: var(--panel2); } .logRow.sel { background: var(--line); }
+.logRow .meta { grid-column: 2; color: var(--muted); font: 11px var(--mono); }
+.logRow .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.logDetail { border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.logDetail .bigsev { font-size: 14px; padding: 3px 12px; }
+.logDetail ul { list-style: none; padding: 0; margin: 10px 0; }
+.logDetail li { margin-bottom: 8px; font-size: 13.5px; display: flex; gap: 8px; align-items: baseline; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; margin: 10px 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--mono); }
+/* KPI cards */
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.kpi { background: var(--panel2); border: 1px solid var(--line); border-top: 3px solid var(--g); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.kpi .grp { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--g); }
+.kpi .val { font-size: 28px; font-weight: 700; line-height: 1.15; margin: 6px 0 2px; color: var(--text); font-variant-numeric: tabular-nums; }
+.kpi .lbl { font-size: 13px; font-weight: 600; }
+.kpi .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.kpi.click { cursor: pointer; } .kpi.click:hover { background: var(--line); }
+.kpi.volume { --g: var(--nano); } .kpi.quality { --g: var(--accent); } .kpi.cost { --g: var(--super); } .kpi.risk { --g: var(--high); }
+.kpiNote { font-size: 12px; color: var(--muted); margin-top: 10px; }
 </style>
 </head>
 <body>
 <header>
   <h1>Nemo<span>Forge</span></h1>
+  <button class="ghost logsBtn" id="logsBtn">Observability logs</button>
   <div class="chips" id="chips"></div>
 </header>
 <main>
@@ -131,9 +169,18 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
         <div class="row"><input id="registry" placeholder="Registry, e.g. cr.eu-north1.nebius.cloud/&lt;registry-id&gt;"><input id="subnet" placeholder="Subnet ID (optional)"><button class="ghost" id="deployBtn">Show deploy commands</button></div>
         <pre id="deployOut" class="hidden"></pre>
       </div>
+      <div class="panel" id="kpiPanel"><h3>Dashboard: all builds</h3><div class="kpis" id="kpis"><p class="empty">Loading...</p></div>
+        <div class="kpiNote">Computed from the builds stored on disk. Refreshes when a build finishes.</div></div>
     </section>
   </div>
 </main>
+<div class="overlay hidden" id="logsView" role="dialog" aria-label="Observability logs">
+  <div class="panel">
+    <div class="logHead"><h3>Observability logs</h3><span class="empty" id="logCount"></span><button class="ghost close" id="logsClose">Close</button></div>
+    <div class="filters" id="logFilters"></div>
+    <div class="logBody"><div class="logList" id="logList"></div><div class="logDetail" id="logDetail"><p class="empty">Click a record to see its severity and why.</p></div></div>
+  </div>
+</div>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -177,6 +224,7 @@ async function loadConfig() {
 }
 
 async function loadHistory() {
+  loadStats();
   const runs = await (await fetch("/api/builds")).json();
   if (!runs.length) return;
   $("history").classList.remove("empty");
@@ -300,6 +348,76 @@ $("deployBtn").onclick = async () => {
   const j = await r.json(); $("deployOut").classList.remove("hidden");
   $("deployOut").textContent = r.ok ? j.commands.join("\n\n") : JSON.stringify(j);
 };
+
+// ---- Dashboard cards: every number comes from /api/stats, computed from stored builds ----
+const fmtN = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? (n / 1e3).toFixed(1) + "k" : Number(n).toLocaleString();
+const orDash = (v, f) => v === null || v === undefined ? "–" : f(v);
+async function loadStats() {
+  const s = await (await fetch("/api/stats")).json();
+  const tiers = ["ultra", "super", "nano"].filter(t => s.calls_by_tier[t]).map(t => `${t} ${s.calls_by_tier[t]}`).join(" · ");
+  const cards = [
+    ["volume", "Total builds", s.builds, `${s.status.passed} passed · ${s.status.below_target} below target · ${s.status.failed} failed`],
+    ["volume", "Model calls", fmtN(s.model_calls), tiers || "no calls yet"],
+    ["volume", "Tokens processed", fmtN(s.tokens), `${fmtN(s.prompt_tokens)} in · ${fmtN(s.completion_tokens)} out`],
+    ["quality", "Pass rate", orDash(s.pass_rate, pct), "builds that hit the training and held-out target"],
+    ["quality", "Avg held-out score", orDash(s.avg_holdout, pct), `shipped versions, on tests never shown to the optimizer · training ${orDash(s.avg_train, pct)}`],
+    ["quality", "Tests graded", fmtN(s.tests_graded), s.tests_graded ? `${pct(s.tests_passed / s.tests_graded)} passed, across all rounds` : "none yet"],
+    ["cost", "Total spend", "$" + s.total_cost_usd.toFixed(4), s.builds ? `$${(s.total_cost_usd / s.builds).toFixed(4)} per build at list prices` : "at list prices"],
+    ["cost", "Avg build time", orDash(s.avg_seconds, v => v >= 90 ? (v / 60).toFixed(1) + " min" : Math.round(v) + " s"), "from goal to shipped version"],
+    ["risk", "Overfitting caught", s.overfit_caught, `rounds where training held or rose but held-out dropped · ${s.overfit_builds} build${s.overfit_builds === 1 ? "" : "s"}`],
+    ["risk", "High & critical alerts", s.alerts, `of ${s.records} log records · click to open`, "alerts"],
+  ];
+  $("kpis").innerHTML = cards.map(([g, label, val, sub, act]) => `<div class="kpi ${g}${act ? " click" : ""}"${act ? ` data-act="${act}" tabindex="0"` : ""}><div class="grp">${{volume: "Volume", quality: "Quality", cost: "Cost & speed", risk: "Risk"}[g]}</div><div class="val">${esc(val)}</div><div class="lbl">${esc(label)}</div><div class="sub">${esc(sub)}</div></div>`).join("");
+  $("kpis").querySelectorAll("[data-act=alerts]").forEach(c => { c.onclick = () => openLogs(["critical", "high"]); c.onkeydown = e => { if (e.key === "Enter") openLogs(["critical", "high"]); }; });
+}
+
+// ---- Observability logs: one record per input, severity set by fixed rules ----
+const SEVS = ["critical", "high", "medium", "low", "info"];
+const KIND = { build: "Build goal", test: "Test case", try: "Playground run" };
+let logs = [], logFilter = new Set(SEVS), logSel = null;
+const when = t => new Date(t * 1000).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+async function openLogs(only) {
+  logs = await (await fetch("/api/logs")).json();
+  logFilter = new Set(only || SEVS); logSel = null;
+  $("logsView").classList.remove("hidden"); document.body.style.overflow = "hidden";
+  renderLogs(); $("logDetail").innerHTML = `<p class="empty">Click a record to see its severity and why.</p>`;
+}
+function closeLogs() { $("logsView").classList.add("hidden"); document.body.style.overflow = ""; }
+function renderLogs() {
+  const count = s => logs.filter(r => r.severity === s).length;
+  $("logFilters").innerHTML = `<button class="ghost${logFilter.size === SEVS.length ? " on" : ""}" data-s="all">All ${logs.length}</button>`
+    + SEVS.map(s => `<button class="ghost${logFilter.size < SEVS.length && logFilter.has(s) ? " on" : ""}" data-s="${s}"><span class="sev ${s}">${s}</span> ${count(s)}</button>`).join("");
+  $("logFilters").querySelectorAll("button").forEach(b => b.onclick = () => {
+    const s = b.dataset.s;
+    if (s === "all") logFilter = new Set(SEVS);
+    else if (logFilter.size === SEVS.length) logFilter = new Set([s]);
+    else { logFilter.has(s) ? logFilter.delete(s) : logFilter.add(s); if (!logFilter.size) logFilter = new Set(SEVS); }
+    renderLogs();
+  });
+  const shown = logs.filter(r => logFilter.has(r.severity));
+  $("logCount").textContent = `${shown.length} of ${logs.length} records`;
+  $("logList").innerHTML = shown.length ? shown.map(r => `<div class="logRow${r.id === logSel ? " sel" : ""}" data-id="${esc(r.id)}" tabindex="0"><div><span class="sev ${r.severity}">${r.severity}</span></div><div class="txt">${esc(r.input)}</div><div class="meta">${KIND[r.kind]} · build ${esc(r.build)} · ${when(r.t)}</div></div>`).join("")
+    : `<p class="empty" style="padding:12px">No records${logs.length ? " at this severity" : " yet. Run a build to create some"}.</p>`;
+  $("logList").querySelectorAll(".logRow").forEach(el => { el.onclick = () => showLog(el.dataset.id); el.onkeydown = e => { if (e.key === "Enter") showLog(el.dataset.id); }; });
+}
+function showLog(id) {
+  const r = logs.find(x => x.id === id); if (!r) return;
+  logSel = id; renderLogs();
+  const d = r.detail || {}, rows = [];
+  if (r.kind === "build") rows.push(["Status", d.status], ["Shipped version", d.version ? "v" + d.version : "–"], ["Training score", orDash(d.train_score, pct)], ["Held-out score", orDash(d.holdout_score, pct)], ["Model calls", d.model_calls], ["Cost", "$" + (d.cost_usd || 0).toFixed(4)], ["Build time", orDash(d.seconds, v => v + " s")]);
+  if (r.kind === "test") rows.push(["Test", `${d.case} (${d.set})`], ["Graded on", "v" + d.version], ["Score", orDash(d.score, pct)], ["Time", orDash(d.ms, v => v + " ms")]);
+  if (r.kind === "try") rows.push(["Agents run", orDash(d.agents, v => v)], ["Time", orDash(d.ms, v => v + " ms")]);
+  $("logDetail").innerHTML = `<span class="sev bigsev ${r.severity}">${r.severity}</span> <span class="empty">${KIND[r.kind]} · ${when(r.t)}</span>`
+    + `<h3 style="margin:14px 0 0">Why this severity</h3><ul>${r.reasons.map(x => `<li><span class="sev ${x.severity}">${x.severity}</span><span>${esc(x.text)}</span></li>`).join("")}</ul>`
+    + `<dl class="kv">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`
+    + `<h3>Input</h3><pre>${esc(r.input)}</pre>` + (r.output ? `<h3 style="margin-top:12px">${r.kind === "build" ? "Agent team" : "Output"}</h3><pre>${esc(r.output)}</pre>` : "")
+    + `<div style="margin-top:12px"><button class="ghost" id="logOpen">Open build ${esc(r.build)}</button></div>`;
+  $("logOpen").onclick = () => { closeLogs(); watch(r.build); window.scrollTo(0, 0); };
+}
+$("logsBtn").onclick = () => openLogs();
+$("logsClose").onclick = closeLogs;
+$("logsView").onclick = e => { if (e.target === $("logsView")) closeLogs(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("logsView").classList.contains("hidden")) closeLogs(); });
 
 loadConfig(); loadHistory();
 if (location.hash.length > 1) watch(location.hash.slice(1));

@@ -62,6 +62,12 @@ python -m nemoforge serve        # open http://127.0.0.1:8000
 
 The first time the dashboard starts with an empty `builds/` folder, it copies in two recorded real Nemotron runs from `demo/builds/`, so you can explore the dashboard without spending any credit (no API key needed). Set `NF_DEMO_BUILDS=0` to skip this.
 
+### Dashboard cards and observability logs
+
+Below the agent team, ten cards summarise every build stored in `builds/`: volume (builds, model calls, tokens), quality (pass rate, average held-out score, tests graded), cost and speed (total spend, average build time) and risk (overfitting caught, high and critical alerts). Every number is computed from the recorded events, not estimated.
+
+The **Observability logs** button lists every input NemoForge handled as its own record: each build goal, each test case the shipped version was graded on, and each "Try the finished agent" run. Each record gets a severity (critical, high, medium, low, info) from fixed rules, and clicking it shows which rules fired. For example, a failed held-out test is high and a crashed build is critical. The same data is at `/api/logs` and `/api/stats`.
+
 Or from the command line:
 
 ```bash
@@ -119,6 +125,7 @@ nemoforge/
   tools.py       built-in tools and the sandbox for generated code
   llm.py         Nemotron tier router on Token Factory, token accounting
   server.py      web app API with live event streaming
+  insights.py    observability log records, severities and dashboard KPIs
   serve.py       the server that gets deployed for one finished build
   deploy.py      container packaging and Nebius endpoint deployment
 web/index.html   the dashboard

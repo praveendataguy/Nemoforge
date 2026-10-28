@@ -50,3 +50,21 @@ def test_access_code_and_deploy_guard(tmp_path, monkeypatch):
     r = client.post(f"/api/builds/{run['id']}/deploy", json={"registry": "cr.example/x"}, headers={"X-Access-Code": "s3cret"})
     cmds = r.json()["commands"]
     assert cmds[-1].startswith("nebius ai endpoint create") and "--container-port 8080" in cmds[-1]
+
+
+def test_logs_and_stats_come_from_stored_builds(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    run = client.post("/api/builds", json={"goal": "check invoice totals"}).json()
+    _wait(client, run["id"])
+    client.post(f"/api/builds/{run['id']}/invoke", json={"input": "Widget 2 x 5.00"})
+
+    logs = [r for r in client.get("/api/logs").json() if r["build"] == run["id"]]
+    kinds = [r["kind"] for r in logs]
+    assert kinds[0] == "build" and "test" in kinds and kinds[-1] == "try"
+    assert logs[0]["severity"] == "info" and logs[0]["reasons"]
+    assert logs[-1]["input"] == "Widget 2 x 5.00"
+    assert all(r["severity"] in ("critical", "high", "medium", "low", "info") for r in logs)
+
+    s = client.get("/api/stats").json()
+    assert s["builds"] >= 1 and s["model_calls"] > 0 and s["tests_graded"] > 0
+    assert s["records"] == len(client.get("/api/logs").json())
