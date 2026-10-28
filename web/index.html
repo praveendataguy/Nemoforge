@@ -280,6 +280,71 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .overlay > .panel { background: rgba(9,14,19,.96); }
 pre { background: rgba(3,6,9,.8); }
 ::selection { background: rgba(118,185,0,.35); }
+/* ---- Theme: Holo lab (light). Bright blueprint grid, frosted glass panels, NVIDIA green + electric cyan + violet ---- */
+:root {
+  --bg: #eef3f8; --panel: rgba(255,255,255,.82); --panel2: #f6f9fc; --line: #d9e2ec; --text: #0b1b2b; --muted: #556677;
+  --accent: #5a9600; --accent2: #3f7d00; --cyan: #0091c7; --accent-soft: rgba(118,185,0,.18);
+  --nano: #0086c9; --super: #7a45f0; --ultra: #4f8f00; --warn: #b86e00; --bad: #d23b3b; --bad-soft: rgba(210,59,59,.10);
+  --heal: #cc1f93; --heal-soft: rgba(204,31,147,.09);
+  --crit: #d32f2f; --high: #d9650b; --med: #a77d00; --low: #0a7fc0; --info: #6b7a89;
+  --glow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 32px -18px rgba(15,40,70,.35), 0 2px 6px -2px rgba(15,40,70,.08);
+}
+body {
+  background:
+    radial-gradient(900px 520px at 0% -8%, rgba(118,185,0,.20), transparent 62%),
+    radial-gradient(850px 520px at 100% -4%, rgba(0,190,255,.18), transparent 62%),
+    radial-gradient(700px 600px at 55% 115%, rgba(122,69,240,.10), transparent 60%),
+    linear-gradient(rgba(0,120,190,.07) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(0,120,190,.07) 1px, transparent 1px) 0 0 / 44px 44px,
+    var(--bg);
+  background-attachment: fixed; color: var(--text);
+}
+header { background: rgba(255,255,255,.78); box-shadow: 0 6px 24px -18px rgba(15,40,70,.5); }
+header h1 { color: var(--text); }
+header h1 span { background: linear-gradient(90deg, #4f8f00, #0091c7); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.chip { background: rgba(255,255,255,.75); color: var(--muted); border-color: var(--line); }
+.chip.ok { color: var(--accent2); border-color: rgba(90,150,0,.55); background: rgba(118,185,0,.10); box-shadow: 0 0 14px -6px rgba(90,150,0,.7); }
+.chip.no { color: var(--bad); border-color: rgba(210,59,59,.5); background: var(--bad-soft); }
+.chip.replay { background: linear-gradient(90deg, rgba(118,185,0,.14), rgba(0,145,199,.12)); border-color: rgba(0,145,199,.45); color: #075a80; }
+.eyebrow { color: var(--accent2); border-color: rgba(90,150,0,.45); background: rgba(255,255,255,.7); }
+.eyebrow::before { background: var(--accent); box-shadow: 0 0 10px rgba(118,185,0,.9); }
+.hero h2 { background: linear-gradient(92deg, #0b1b2b 0%, #12324a 34%, #4f8f00 62%, #0091c7 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { color: var(--muted); }
+.goal textarea, .row input, .playground textarea, .opts input[type=number] { background: rgba(255,255,255,.92); color: var(--text); border-color: #c9d6e3; box-shadow: inset 0 1px 2px rgba(15,40,70,.06); }
+.goal textarea:focus, .row input:focus, .playground textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,145,199,.18), 0 0 26px -8px rgba(0,145,199,.6); }
+button { background: linear-gradient(135deg, #9be33a, #76b900 55%, #5a9600); color: #0a1600; box-shadow: 0 8px 22px -10px rgba(90,150,0,.85); }
+button:not(:disabled):hover { box-shadow: 0 10px 28px -8px rgba(90,150,0,.95); }
+button.ghost { background: rgba(255,255,255,.85); color: var(--text); border: 1px solid #c9d6e3; box-shadow: 0 1px 2px rgba(15,40,70,.06); }
+button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,145,199,.12); }
+button:disabled { opacity: .5; }
+.panel { background: var(--panel); border-color: rgba(201,214,227,.9); box-shadow: var(--glow); }
+.panel::before { height: 2px; background: linear-gradient(90deg, transparent, #76b900, #00b4e6, #7a45f0, transparent); }
+.panel h3 { color: #22384d; }
+.panel h3::before { background: var(--accent); box-shadow: 0 0 8px rgba(118,185,0,.8); }
+pre, .tool { background: #f3f7fb; color: #12263a; border-color: var(--line); }
+.agent, .heal { background: linear-gradient(180deg, #ffffff, #f3f7fb); border-color: var(--line); }
+.kpi { background: linear-gradient(180deg, #ffffff, #f4f8fc); border-color: var(--line); box-shadow: 0 -10px 22px -16px var(--g), 0 10px 24px -20px rgba(15,40,70,.4); }
+.kpi.click:hover { background: #eef4fa; }
+#trainBig { text-shadow: none; } #holdBig { text-shadow: none; }
+.owner { background: rgba(255,255,255,.75); }
+.avatar { color: #0a1600; background: conic-gradient(from 200deg, #9be33a, #00b4e6, #76b900); box-shadow: 0 6px 16px -6px rgba(0,145,199,.7); }
+.spot { border-color: rgba(90,150,0,.4); background: linear-gradient(135deg, rgba(118,185,0,.12), rgba(0,180,230,.08) 60%, rgba(255,255,255,.6)); }
+.pipe .node, .metric { background: rgba(255,255,255,.85); }
+.st.passed { color: var(--accent2); }
+.logRow:hover { background: #f1f6fb; } .logRow.sel { background: #e6f0f9; }
+.filters button.on { background: #e6f0f9; border-color: var(--cyan); }
+.overlay { background: rgba(14,30,48,.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.overlay > .panel { background: rgba(255,255,255,.97); }
+#healPanel { background: linear-gradient(135deg, var(--heal-soft), transparent 60%), var(--panel); }
+.rbar { background: #e3eaf2; }
+.timeline li::before, .timeline li::after { background: #c9d6e3; }
+.timeline li.architect::before, .timeline li.optimizer::before { background: var(--ultra); }
+.timeline li.toolsmith::before { background: var(--super); }
+.timeline li.eval::before, .timeline li.tests::before { background: var(--nano); }
+.timeline li.done::before { background: var(--accent); }
+.timeline li.error::before, .timeline li.budget::before { background: var(--bad); }
+.timeline li.healer::before { background: var(--heal); }
+::selection { background: rgba(0,145,199,.2); }
 </style>
 </head>
 <body>
