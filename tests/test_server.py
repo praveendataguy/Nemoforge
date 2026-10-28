@@ -79,3 +79,12 @@ def test_agent_registry_lists_built_agents(tmp_path, monkeypatch):
     agent = next(a for a in client.get("/api/agents").json() if a["build"] == run["id"])
     assert agent["name"] == "invoice_checker" and agent["status"] == "passed"
     assert [t["name"] for t in agent["team"]] == ["parser", "writer"] and agent["tools"] == 1
+
+
+def test_invoke_accepts_a_one_hour_transcript(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    run = client.post("/api/builds", json={"goal": "check invoice totals"}).json()
+    _wait(client, run["id"])
+    transcript = "Alice: Widget 2 x 5.00, we agreed to ship on Friday.\n" * 1200  # ~62k chars
+    assert client.post(f"/api/builds/{run['id']}/invoke", json={"input": transcript}).status_code == 200
+    assert client.post(f"/api/builds/{run['id']}/invoke", json={"input": "x" * 200_001}).status_code == 422

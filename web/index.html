@@ -176,6 +176,22 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .kpi:hover { transform: translateY(-2px); }
 .kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
 .kpi.volume { --g: var(--cyan); }
+/* Guide panels in the left column */
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li { counter-increment: s; position: relative; padding: 0 0 12px 34px; font-size: 13.5px; color: var(--muted); }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 12px var(--mono); color: #061003; background: linear-gradient(135deg, var(--accent2), var(--accent)); }
+.steps li b { color: var(--text); display: block; font-size: 14px; }
+.steps .tier { float: none; margin-left: 4px; }
+.guide pre { font-size: 12px; margin: 6px 0 10px; }
+.guide p { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+.gloss { margin: 0; font-size: 13px; }
+.gloss2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 24px; }
+.gloss2 > div { break-inside: avoid; }
+.gloss dt { color: var(--text); font-weight: 600; margin-top: 8px; }
+.gloss dd { margin: 2px 0 0; color: var(--muted); }
+.tryBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.tryBar button { min-height: 34px; font-size: 13px; padding: 0 14px; }
+.tryBar span { font: 12px var(--mono); color: var(--muted); }
 /* Agent registry panel */
 .teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .teamHead h3 { margin: 0; }
@@ -237,6 +253,21 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel"><h3>Build log</h3><ul class="timeline" id="timeline"><li class="empty" style="padding-left:0">Start a build to see each step here.</li></ul></div>
       <div class="panel"><h3>Model usage</h3><div id="usage" class="empty">No calls yet.</div></div>
       <div class="panel history"><h3>Builds</h3><div id="history" class="empty">None yet.</div></div>
+      <div class="panel guide"><h3>How it works</h3><ol class="steps">
+        <li><b>You describe a job</b>One sentence in plain English. No code, no prompts.</li>
+        <li><b>Ultra designs the team <span class="tier ultra">ultra</span></b>Picks the agents, their roles and model tiers, and writes test cases. Some are held out. (Super does this in lite mode.)</li>
+        <li><b>Super writes the tools <span class="tier super">super</span></b>Each custom tool is coded and unit-tested in a sandbox before the team may use it.</li>
+        <li><b>The team runs, the optimizer improves <span class="tier nano">nano</span></b>The agents run every test on Nemotron. Ultra reads the failures and rewrites the prompts, round after round.</li>
+        <li><b>Held-out tests decide what ships</b>The version that scores best, including tests the optimizer never saw, is the one you can try and deploy.</li>
+      </ol></div>
+      <div class="panel guide"><h3>Quick start</h3>
+        <p>In a PowerShell terminal in the project folder, run each line on its own:</p>
+        <pre>git pull
+$env:NEBIUS_API_KEY="your-key"
+python -m nemoforge serve</pre>
+        <p>Then open <b>127.0.0.1:8000</b>. With no key, the page runs in replay mode and shows recorded real runs.</p>
+        <p>Long meeting? Open a build, use <b>Load transcript</b> in "Try the finished agent" and pick a Teams <code>.vtt</code> or <code>.txt</code> export.</p>
+      </div>
     </aside>
     <section>
       <div class="panel hidden" id="teamPanel"><div class="teamHead"><h3>Agent team</h3><button class="ghost" id="backBtn">Close build</button></div>
@@ -248,6 +279,7 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
       <div class="panel hidden playground" id="tryPanel"><h3>Try the finished agent</h3>
+        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span></div>
         <textarea id="tryInput"></textarea><button id="tryBtn">Run</button>
         <div id="tryOut"></div>
       </div>
@@ -258,6 +290,14 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel" id="registryPanel"><h3>Agent registry</h3><div id="agentRegistry"><p class="empty">Loading agents...</p></div></div>
       <div class="panel" id="kpiPanel"><h3>Dashboard: all builds</h3><div class="kpis" id="kpis"><p class="empty">Loading...</p></div>
         <div class="kpiNote">Computed from the builds stored on disk. Refreshes when a build finishes.</div></div>
+      <div class="panel guide"><h3>Glossary</h3><dl class="gloss gloss2">
+        <div><dt>Training tests</dt><dd>Tests the optimizer sees and learns from.</dd></div>
+        <div><dt>Held-out tests</dt><dd>Tests it never sees. They show how the agent does on new inputs.</dd></div>
+        <div><dt>Pass target</dt><dd>A build passes when both scores reach 90%.</dd></div>
+        <div><dt>Overfitting caught</dt><dd>A round got better on training but worse on held-out, so NemoForge kept the earlier version.</dd></div>
+        <div><dt>Severity</dt><dd><span class="sev critical">critical</span> crashed · <span class="sev high">high</span> failed a held-out test or scored under 50% · <span class="sev medium">medium</span> below target · <span class="sev low">low</span> partial or caught · <span class="sev info">info</span> all good.</dd></div>
+        <div><dt>Cost</dt><dd>Tokens times approximate Token Factory list prices, counted on every call.</dd></div>
+      </dl></div>
     </section>
   </div>
 </main>
@@ -277,6 +317,7 @@ const EXAMPLES = [
   "Given a company name, research recent news and write a one-page sales briefing with three talking points and sources.",
   "Turn messy meeting notes into a summary, a decision list and action items with owners and due dates.",
   "Check a job description for biased or exclusionary wording and suggest inclusive rewrites.",
+  "Summarise a long meeting transcript (30 to 60 minutes, 2 or more speakers, Microsoft Teams style with speaker names and timestamps). Output: a 5-line executive summary, key discussion points per topic, decisions made, action items with owner and due date, open questions, and a per-participant contribution note. Only use names and facts that appear in the transcript; write \"not stated\" when an owner or date is missing.",
 ];
 let owner = "", current = null, rounds = [], source = null, needCode = false, replay = false;
 const REPLAY_TIP = "Replay mode: set NEBIUS_API_KEY to start new builds";
@@ -419,6 +460,33 @@ $("buildBtn").onclick = async () => {
   const r = await post("/api/builds", { goal, lite: $("lite").checked, budget_usd: parseFloat($("budget").value) || null });
   if (!r.ok) { $("buildBtn").disabled = false; return alert(await r.text()); }
   watch((await r.json()).id); loadHistory();
+};
+
+// Teams exports transcripts as WebVTT: keep "Name: text", drop cue numbers and timestamps, merge a speaker's consecutive lines.
+function vttToText(raw) {
+  const out = [];
+  for (let line of raw.replace(/\r/g, "").split("\n")) {
+    line = line.trim();
+    if (!line || line === "WEBVTT" || /^NOTE\b/.test(line) || /^\d+$/.test(line) || /-->/.test(line) || /^[0-9a-f-]{36}(\/\d+-\d+)?$/i.test(line)) continue;
+    const m = line.match(/^<v ([^>]+)>(.*?)(<\/v>)?$/);
+    const who = m ? m[1].trim() : null, text = (m ? m[2] : line).replace(/<[^>]+>/g, "").trim();
+    if (!text) continue;
+    const last = out[out.length - 1];
+    if (last && who && last.who === who) last.text += " " + text; else out.push({ who, text });
+  }
+  return out.map(x => (x.who ? x.who + ": " : "") + x.text).join("\n");
+}
+function tryMeta() {
+  const n = $("tryInput").value.length, words = $("tryInput").value.split(/\s+/).filter(Boolean).length;
+  $("tryMeta").textContent = n ? `${n.toLocaleString()} chars · about ${Math.max(1, Math.round(words / 140))} min of talk` + (n > 200000 ? " · too long, max 200,000" : "") : "";
+}
+$("tryInput").oninput = tryMeta;
+$("loadBtn").onclick = () => $("loadFile").click();
+$("loadFile").onchange = async () => {
+  const f = $("loadFile").files[0]; if (!f) return;
+  const raw = await f.text();
+  $("tryInput").value = /^\uFEFF?WEBVTT/.test(raw) || /\.(vtt|srt)$/i.test(f.name) ? vttToText(raw) : raw;
+  $("loadFile").value = ""; tryMeta();
 };
 
 $("tryBtn").onclick = async () => {

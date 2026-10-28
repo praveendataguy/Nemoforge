@@ -59,7 +59,8 @@ class BuildRequest(BaseModel):
 
 
 class InvokeRequest(BaseModel):
-    input: str = Field(min_length=1, max_length=20000)
+    # Room for a full 1-hour meeting transcript (about 60k characters).
+    input: str = Field(min_length=1, max_length=200_000)
 
 
 class DeployRequest(BaseModel):
