@@ -101,6 +101,7 @@ def config() -> dict:
         "lite": cfg.lite,
         "sandbox_no_network": bool(_no_net_prefix()),
         "access_code": bool(os.environ.get("NF_ACCESS_CODE")),
+        "owner": cfg.owner,
     }
 
 
@@ -130,6 +131,11 @@ def list_builds() -> list[dict]:
 @app.get("/api/logs")
 def logs() -> list[dict]:
     return insights.logs(list(registry.runs.values()), settings().builds_dir)
+
+
+@app.get("/api/agents")
+def agents() -> list[dict]:
+    return insights.agents(list(registry.runs.values()))
 
 
 @app.get("/api/stats")
