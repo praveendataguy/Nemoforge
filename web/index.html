@@ -220,6 +220,16 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .docs ol { padding-left: 18px; } .docs li { margin: 3px 0; } .docs b { color: var(--text); }
 .docs code { font: 12px var(--mono); color: var(--accent); }
 .docs .sev { margin: 0 2px; }
+#thinkStats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 8px 0 12px; }
+#thinkStats b, .reason .facts b { font: 700 20px var(--mono); display: block; }
+#thinkStats span, .reason .facts span { color: var(--muted); font-size: 12.5px; }
+.thought { border-top: 1px dashed var(--line); }
+.thought summary { cursor: pointer; padding: 8px 0; font-size: 13.5px; }
+.thought pre { max-height: 240px; overflow: auto; white-space: pre-wrap; font-size: 12.5px; }
+.reason { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.reason h4 { margin: 0 0 8px; font: 600 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ultra); }
+.reason .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.memNote { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
 .memToggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-left: auto; cursor: pointer; }
 .teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .teamHead h3 { margin: 0; }
@@ -710,7 +720,8 @@ html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"]
         <details><summary>Smart router</summary><p>Before every agent runs, Nano rates the request from 1 to 5: 1-2 run on Nano, 3-4 on Super, 5 on Ultra. It never drops more than one tier below the Architect's plan. The routing panel shows every decision and the money saved.</p></details>
         <details><summary>Held-out tests and overfitting</summary><p>The held-out score is the honest number. If training rises while held-out falls, NemoForge flags overfitting and ships an earlier, better version.</p></details>
         <details><summary>Observability and severity</summary><p>Every input is a log record: build goals, graded tests and playground runs. <span class="sev critical">critical</span> crashes, <span class="sev high">high</span> weak held-out or big gaps, <span class="sev medium">medium</span> below target or interrupted, <span class="sev low">low</span> notes such as repairs, <span class="sev info">info</span> all good.</p></details>
-        <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team its last 3 runs as context, for example to follow up on open items from the previous meeting.</p></details>
+        <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team the 3 earlier runs most related to the new request, ranked by meaning with a Nebius embedding model, for example to follow up on open items from a related meeting.</p></details>
+        <details><summary>Nemotron reasoning</summary><p>Every call sets Nemotron's reasoning switch per tier: Ultra and Super think step by step, Nano answers directly to stay fast and cheap. The Nemotron reasoning panel in a build shows what Ultra and Super were thinking.</p></details>
         <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>.</p><pre>python -m nemoforge serve
 python -m nemoforge build "goal" --budget 1
 python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
@@ -723,11 +734,12 @@ python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
         <div class="scores"><div class="big" id="trainBig">-<small>training tests</small></div><div class="big" id="holdBig">-<small>held-out tests (never shown to the optimizer)</small></div><svg id="chart" viewBox="0 0 360 120" width="360" height="120" role="img" aria-label="Score by round"></svg></div>
       </div>
       <div class="panel hidden" id="healPanel"><h3>Self-healing</h3><p class="summary">When a build is stuck below target or crashes, Nemotron Ultra reviews every round, finds the root cause and repairs the team. A bonus round then checks the repair on the same tests.</p><div id="heals"></div></div>
+      <div class="panel hidden" id="thinkPanel"><h3>Nemotron reasoning</h3><p class="summary">Ultra and Super think step by step before they answer (reasoning on). Nano answers directly (reasoning off) to stay fast and cheap. Open a step to read what Nemotron was thinking.</p><div id="thinkStats"></div><div id="thoughts"></div></div>
       <div class="panel hidden" id="resultsPanel"><h3>Latest test results</h3><table><thead><tr><th>Result</th><th>Test input</th><th>Grader's reason</th></tr></thead><tbody id="results"></tbody></table></div>
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
       <div class="panel hidden playground" id="tryPanel"><h3>Try the finished agent</h3>
-        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (last 3 runs)</label></div>
+        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (3 most related runs)</label></div>
         <textarea id="tryInput"></textarea><button id="tryBtn">Run</button>
         <div id="tryOut"></div>
       </div>
@@ -804,9 +816,9 @@ async function loadHistory() {
 function reset() {
   $("teamPanel").classList.remove("hidden");
   rounds = []; for (const k in live) delete live[k];
-  $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = ""; $("heals").innerHTML = ""; healNext = false;
+  $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = ""; $("heals").innerHTML = ""; healNext = false; $("thoughts").innerHTML = ""; thinkN = { on: 0, off: 0, tokens: 0 }; lastStage = "";
   $("summary").textContent = "The Architect is designing...";
-  ["scorePanel", "healPanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
+  ["scorePanel", "healPanel", "thinkPanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
   $("tryOut").innerHTML = ""; $("deployOut").classList.add("hidden");
   $("holdBig").querySelector("small").textContent = "held-out tests (never shown to the optimizer)";
 }
@@ -864,7 +876,9 @@ function onEvent(e) {
   if (e.stage === "ping") return;
   if (e.stage === "end") { document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live")); $("buildBtn").disabled = replay; loadHistory(); return; }
   if (e.stage === "model" && d0(e).total_cost_usd !== undefined) liveCost(d0(e));
+  if (e.stage === "model" && d0(e).thinking !== undefined) renderThought(e);
   if (e.stage !== "model") {
+    lastStage = e.stage;
     document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live"));
     const li = document.createElement("li"); li.className = e.stage + " live";
     li.innerHTML = `<span class="stage">${esc(e.stage)}</span>${esc(e.message)}`; $("timeline").append(li);
@@ -888,6 +902,23 @@ function onEvent(e) {
       $("trainBig").firstChild.nodeValue = pct(d.report.train_score); $("holdBig").firstChild.nodeValue = pct(d.report.holdout_score);
       $("holdBig").querySelector("small").textContent = `held-out tests, shipped v${d.report.version} (never shown to the optimizer)`;
     } $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); }
+}
+
+// ---- Nemotron reasoning: which calls thought step by step, and what they were thinking ----
+let thinkN = { on: 0, off: 0, tokens: 0 }, lastStage = "";
+function renderThought(e) {
+  const d = d0(e);
+  if (d.thinking) thinkN.on++; else thinkN.off++;
+  thinkN.tokens += d.thought_tokens || 0;
+  $("thinkPanel").classList.remove("hidden");
+  $("thinkStats").innerHTML = `<div><b>${thinkN.on}</b><span>calls with reasoning on</span></div><div><b>${thinkN.off}</b><span>fast calls, reasoning off</span></div><div><b>${fmtN(thinkN.tokens)}</b><span>reasoning tokens (approx.)</span></div>`;
+  if (!d.thought) return;
+  $("thoughts").insertAdjacentHTML("afterbegin", `<details class="thought ${esc(d.tier)}"><summary><span class="tier ${esc(d.tier)}">${esc(d.tier)}</span> while <b>${esc(lastStage || "starting")}</b> · ~${fmtN(d.thought_tokens || 0)} tokens</summary><pre>${esc(d.thought)}</pre></details>`);
+  // Keep Ultra's design and repair reasoning; trim the oldest routine steps first.
+  while ($("thoughts").children.length > 8) {
+    const items = [...$("thoughts").children];
+    (items.reverse().find(x => !x.classList.contains("ultra")) || items[0]).remove();
+  }
 }
 
 // ---- Self-healing: the Healer's diagnosis, root causes, changes and the bonus round's result ----
@@ -997,7 +1028,8 @@ $("tryBtn").onclick = async () => {
   const r = await post(`/api/builds/${current}/invoke`, { input, use_memory: $("useMemory").checked });
   const j = await r.json(); $("tryBtn").disabled = replay; loadMemory(); loadLogsMini();
   if (!r.ok) return $("tryOut").innerHTML = `<pre>${esc(JSON.stringify(j))}</pre>`;
-  $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${t.route ? routeChip(t.route) : `${esc(t.agent)} · ${t.tier}`} · ${t.ms} ms${t.route && t.route.why ? ` · ${esc(t.route.why)}` : ""} · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
+  const mem = j.memory ? `<p class="memNote">Recalled ${j.memory.runs} earlier run${j.memory.runs === 1 ? "" : "s"} ${j.memory.mode === "semantic" ? "most related to this request, ranked by meaning with a Nebius embedding model" : "(the most recent ones)"}.</p>` : "";
+  $("tryOut").innerHTML = mem + `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${t.route ? routeChip(t.route) : `${esc(t.agent)} · ${t.tier}`} · ${t.ms} ms${t.route && t.route.why ? ` · ${esc(t.route.why)}` : ""} · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
 };
 
 $("deployBtn").onclick = async () => {
@@ -1026,6 +1058,7 @@ async function loadStats() {
     ["risk", "High & critical alerts", s.alerts, `of ${s.records} log records · click to open`, "alerts"],
   ];
   renderRouting(s.routing);
+  if (s.reasoning) $("routing").insertAdjacentHTML("beforeend", renderReasoning(s.reasoning));
   $("kpis").innerHTML = cards.map(([g, label, val, sub, act]) => `<div class="kpi ${g}${act ? " click" : ""}"${act ? ` data-act="${act}" tabindex="0"` : ""}><div class="grp">${{volume: "Volume", quality: "Quality", cost: "Cost & speed", risk: "Risk"}[g]}</div><div class="val">${esc(val)}</div><div class="lbl">${esc(label)}</div><div class="sub">${esc(sub)}</div></div>`).join("");
   $("kpis").querySelectorAll("[data-act=alerts]").forEach(c => { c.onclick = () => openLogs(["critical", "high"]); c.onkeydown = e => { if (e.key === "Enter") openLogs(["critical", "high"]); }; });
 }
@@ -1042,6 +1075,13 @@ function renderRouting(r) {
     + `<table class="rtable"><thead><tr><th>Model</th><th class="hide-sm">Used for</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>`
     + tiers.map(t => `<tr><td><span class="sw" style="background:var(--${t})"></span>${t}</td><td class="role hide-sm">${ROLE[t]}</td><td>${r.tiers[t].calls} (${pct(r.tiers[t].calls / calls)})</td><td>${fmtN(r.tiers[t].tokens)}</td><td>$${r.tiers[t].cost_usd.toFixed(4)}</td></tr>`).join("")
     + `</tbody></table>` + renderSmart(r.smart);
+}
+function renderReasoning(m) {
+  return `<div class="reason"><h4>Nemotron reasoning & Nebius memory</h4><div class="facts">`
+    + `<div><b style="color:var(--ultra)">${m.on}</b><span>calls with reasoning on (Ultra, Super)</span></div>`
+    + `<div><b style="color:var(--nano)">${m.off}</b><span>fast calls, reasoning off (Nano)</span></div>`
+    + `<div><b>${fmtN(m.thought_tokens)}</b><span>reasoning tokens (approx.)</span></div>`
+    + `<div><b>${m.semantic_recalls}</b><span>memory recalls ranked by Nebius embeddings</span></div></div></div>`;
 }
 // One routing decision: planned tier (struck out when changed) -> chosen tier, plus Nano's difficulty rating.
 function routeChip(d) {

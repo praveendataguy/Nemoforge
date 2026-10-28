@@ -48,14 +48,18 @@ class NemotronRouter:
         if self.run is not None and self.cfg.budget_usd and self.run.cost_usd >= self.cfg.budget_usd:
             raise BudgetExceeded(f"budget of ${self.cfg.budget_usd:.2f} used up (spent ${self.run.cost_usd:.4f})")
         model = self.model_for(tier)
+        think = self.cfg.thinking.get(tier, True)
         started = time.time()
-        resp = self.client.chat.completions.create(
+        resp = self._create(
             model=model,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
             max_tokens=max_tokens,
             temperature=0.2,
+            think=think,
         )
-        text = resp.choices[0].message.content or ""
+        msg = resp.choices[0].message
+        text = msg.content or ""
+        thought = reasoning_of(msg, text)
         if self.run is not None and resp.usage is not None:
             p_in, p_out = self.cfg.prices[tier]
             cost = (resp.usage.prompt_tokens * p_in + resp.usage.completion_tokens * p_out) / 1_000_000
@@ -69,8 +73,54 @@ class NemotronRouter:
                 completion_tokens=resp.usage.completion_tokens,
                 cost_usd=cost,
                 total_cost_usd=self.run.cost_usd,
+                thinking=think and self._thinking_param,
+                # Rough count: about 4 characters per token.
+                thought_tokens=len(thought) // 4,
+                thought=_clip(thought, 700),
             )
         return _THINK.sub("", text).strip()
+
+    # Nebius serves Nemotron with its chat template switch for reasoning. If an endpoint rejects it,
+    # stop sending it and let the model use its default.
+    _thinking_param = True
+
+    def _create(self, *, think: bool, **kwargs: Any):
+        if self._thinking_param:
+            try:
+                return self.client.chat.completions.create(
+                    **kwargs, extra_body={"chat_template_kwargs": {"enable_thinking": think}}
+                )
+            except Exception as err:
+                if getattr(err, "status_code", None) != 400:
+                    raise
+                # Only stop sending the switch when the same request works without it.
+                resp = self.client.chat.completions.create(**kwargs)
+                NemotronRouter._thinking_param = False
+                return resp
+        return self.client.chat.completions.create(**kwargs)
+
+
+def reasoning_of(msg: Any, text: str) -> str:
+    """Nemotron's reasoning for one reply: a separate reasoning field, or the <think> block in the text."""
+    extra = getattr(msg, "model_extra", None) or {}
+    thought = getattr(msg, "reasoning_content", None) or extra.get("reasoning_content") or extra.get("reasoning") or ""
+    if not thought:
+        m = re.search(r"<think>(.*?)(?:</think>|$)", text, re.S)
+        thought = m.group(1) if m else ""
+    return thought.strip()
+
+
+def _clip(text: str, n: int) -> str:
+    return text if len(text) <= n else text[:n].rstrip() + "..."
+
+
+def embed(cfg: Settings, texts: list[str]) -> list[list[float]]:
+    """Embed texts with the Nebius embedding model (used to rank agent memory)."""
+    from openai import OpenAI
+
+    client = OpenAI(base_url=cfg.nebius_base_url, api_key=cfg.nebius_api_key, timeout=60)
+    resp = client.embeddings.create(model=cfg.embed_model, input=texts)
+    return [d.embedding for d in sorted(resp.data, key=lambda d: d.index)]
 
 
 def parse_json(text: str) -> Any:

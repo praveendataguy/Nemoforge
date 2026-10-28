@@ -45,6 +45,8 @@ Every version of the spec is saved as JSON (`builds/<id>/spec_v1.json`, `spec_v2
 | Built agents (default) | Nemotron 3 Nano | Most calls happen here, so speed and cost matter most |
 
 - **Nebius Token Factory** serves all models through its OpenAI-compatible API. The dashboard shows calls and tokens per tier for every build.
+- **Nemotron reasoning switch**: every call sets Nemotron's `enable_thinking` chat template flag per tier. Ultra and Super reason step by step; Nano answers directly, so it stays fast and cheap. The **Nemotron reasoning** panel shows what Ultra and Super were thinking at each step (the Architect's design, the Optimizer's diagnosis), and the routing panel counts reasoning calls and tokens. Override with `NF_THINK_NANO`, `NF_THINK_SUPER` and `NF_THINK_ULTRA` (`1` or `0`). If an endpoint rejects the flag, NemoForge stops sending it and uses the model default.
+- **Nebius embeddings** rank agent memory by meaning (`Qwen/Qwen3-Embedding-8B` by default, `NF_EMBED_MODEL` to change it, `NF_SEMANTIC_MEMORY=0` to turn it off). If the embedding call fails, memory falls back to the most recent runs.
 - **Nebius Serverless Endpoints** host the finished agent teams (CPU preset, since the models are called through Token Factory).
 - **Tavily** powers the built-in `web_search` and `fetch_url` tools that the Architect can give to research agents.
 
@@ -67,9 +69,9 @@ The first time the dashboard starts with an empty `builds/` folder, it copies in
 Every agent remembers two things, shown in the **Agent memory** panel on the left when an agent is open:
 
 - **Lessons from its build**: what the Optimizer fixed each round and the root causes the Healer found.
-- **Recent runs**: its latest playground inputs and answers.
+- **Earlier runs**: its playground inputs and answers.
 
-Tick **Use memory (last 3 runs)** in the playground and the team gets its last three runs as context, so a meeting agent can follow up on open items from the previous meeting. The observability log keeps exactly what you typed. `GET /api/builds/<id>/memory` returns the same data.
+Tick **Use memory (3 most related runs)** in the playground and the team gets the three earlier runs most related to the new request as context, ranked by a Nebius embedding model, so a meeting agent can follow up on open items from a related meeting. The playground says which runs it recalled and how. The observability log keeps exactly what you typed. `GET /api/builds/<id>/memory` returns the same data.
 
 The left column also has an **Observability logs** panel (latest records and severity counts for the open build, or all builds; click one to open it) and a short **Documentation** panel that explains the pipeline, the smart router, held-out tests, severity rules, memory and settings.
 
