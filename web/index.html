@@ -260,14 +260,6 @@ pre { background: rgba(3,6,9,.8); }
         <li><b>The team runs, the optimizer improves <span class="tier nano">nano</span></b>The agents run every test on Nemotron. Ultra reads the failures and rewrites the prompts, round after round.</li>
         <li><b>Held-out tests decide what ships</b>The version that scores best, including tests the optimizer never saw, is the one you can try and deploy.</li>
       </ol></div>
-      <div class="panel guide"><h3>Quick start</h3>
-        <p>In a PowerShell terminal in the project folder, run each line on its own:</p>
-        <pre>git pull
-$env:NEBIUS_API_KEY="your-key"
-python -m nemoforge serve</pre>
-        <p>Then open <b>127.0.0.1:8000</b>. With no key, the page runs in replay mode and shows recorded real runs.</p>
-        <p>Long meeting? Open a build, use <b>Load transcript</b> in "Try the finished agent" and pick a Teams <code>.vtt</code> or <code>.txt</code> export.</p>
-      </div>
     </aside>
     <section>
       <div class="panel hidden" id="teamPanel"><div class="teamHead"><h3>Agent team</h3><button class="ghost" id="backBtn">Close build</button></div>
