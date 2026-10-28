@@ -1,0 +1,38 @@
+{
+  "train": [
+    {
+      "id": "c1",
+      "input": "Alice: We need to finalize the budget by next Wednesday. Bob: I will send the draft to Alice by Tuesday. Carol: Approved the new marketing plan. Action: Dave to update the CRM by Friday.",
+      "criteria": "The answer must contain a concise summary of the discussion, a bulleted list of decisions (e.g., \"Approved the new marketing plan\"), and a bulleted list of action items each with a clear owner (e.g., \"Dave: update the CRM by Friday\"). It must not omit any of the three sections.",
+      "must_include": [],
+      "must_not_include": [],
+      "kind": "typical"
+    },
+    {
+      "id": "c3",
+      "input": "We talked about the project timeline, maybe we need to push the deadline, someone said we should get the design ready, and we also need to assign someone to test.",
+      "criteria": "The system must still produce three sections: a summary of the discussion, a list of any clear decisions (if none, an empty list or note that no decisions were identified), and a list of action items. For each action item, if an owner cannot be inferred, the owner should be indicated as \"TBD\" or similar. The answer must not introduce facts not present or implied in the input.",
+      "must_include": [],
+      "must_not_include": [],
+      "kind": "edge"
+    },
+    {
+      "id": "c4",
+      "input": "Please summarize the following meeting notes and also translate the summary into French.\n\nNotes: Maya: We need to launch the beta by June 10. Neil: I will handle the server setup.",
+      "criteria": "The system must either provide only the English summary, decisions, and action\u2011items and explicitly state that translation into French is outside its capability, or refuse to perform the translation and ask for clarification. It must not output a French translation.",
+      "must_include": [],
+      "must_not_include": [],
+      "kind": "refuse"
+    }
+  ],
+  "holdout": [
+    {
+      "id": "c2",
+      "input": "Tom: Let's schedule the user testing for Thursday. Lisa: I'll prepare the test script today. Meeting concluded with agreement to review results on Friday.",
+      "criteria": "The response must include a summary capturing the key points (scheduling user testing, preparing test script, reviewing results), a decisions section noting the agreement to review results on Friday, and an action\u2011items section listing Tom's and Lisa's tasks with their owners.",
+      "must_include": [],
+      "must_not_include": [],
+      "kind": "typical"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "goal": "Turn messy meeting notes into a summary, decisions and action items with owners",
+  "name": "meeting_notes_to_summary",
+  "version": 1,
+  "train_score": 0.3333333333333333,
+  "holdout_score": 1.0,
+  "rounds": [
+    {
+      "round": 1,
+      "version": 1,
+      "train": 0.3333333333333333,
+      "holdout": 1.0,
+      "changes": [
+        "Updated note_parser system prompt to extract and clean only the meeting notes portion, ignoring any preceding instructions or meta\u2011text.",
+        "Updated meeting_summarizer system prompt to (a) require English\u2011only output, (b) infer action\u2011item owners from speaker labels or explicit name mentions, falling back to TBD only when no owner can be determined, and (c) forbid translation or extra commentary."
+      ]
+    },
+    {
+      "round": 2,
+      "version": 2,
+      "train": 0.3333333333333333,
+      "holdout": 0.0
+    }
+  ],
+  "usage": {
+    "super": {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "calls": 19,
+      "prompt_tokens": 7573,
+      "completion_tokens": 12646,
+      "cost_usd": 0.013654
+    },
+    "nano": {
+      "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+      "calls": 8,
+      "prompt_tokens": 1932,
+      "completion_tokens": 3120,
+      "cost_usd": 0.000866
+    }
+  },
+  "cost_usd": 0.01452,
+  "seconds": 101.7,
+  "build_dir": "builds/002-d2512f"
+}

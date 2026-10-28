@@ -31,7 +31,7 @@ class Run:
         self.events.append(event)
         if self.log_path is not None:
             self.log_path.parent.mkdir(parents=True, exist_ok=True)
-            with self.log_path.open("a") as f:
+            with self.log_path.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(event, default=str) + "\n")
         for loop, q in list(self._waiters):
             loop.call_soon_threadsafe(q.put_nowait, event)
@@ -98,13 +98,13 @@ class Registry:
             run_id = log.parent.name
             if run_id in self.runs:
                 continue
-            events = [json.loads(line) for line in log.read_text().splitlines() if line.strip()]
+            events = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines() if line.strip()]
             if not events:
                 continue
             done = next((e for e in reversed(events) if e["stage"] in ("done", "error")), None)
             report = (done or {}).get("data", {}).get("report", {})
             status = "failed" if done is None or done["stage"] == "error" else (
-                "passed" if (log.parent / "status").exists() and (log.parent / "status").read_text().strip() == "passed" else "below_target"
+                "passed" if (log.parent / "status").exists() and (log.parent / "status").read_text(encoding="utf-8").strip() == "passed" else "below_target"
             )
             run = Run(id=run_id, kind="build", target=events[0].get("data", {}).get("goal", run_id), status=status,
                       created=events[0]["t"], events=events, usage=report.get("usage", {}), result=report)

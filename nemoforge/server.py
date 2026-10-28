@@ -31,7 +31,21 @@ WEB = Path(__file__).resolve().parent.parent / "web"
 # Swappable so tests can run the app without network access.
 llm_factory: Callable[[Run | None, Settings], LLM] = lambda run, cfg: NemotronRouter(run, cfg)
 
+DEMO_BUILDS = WEB.parent / "demo" / "builds"
+
+
+def _seed_demo(builds_dir: Path) -> None:
+    """Copy the recorded real Nemotron runs into an empty builds folder, so the dashboard has something to show."""
+    if not DEMO_BUILDS.is_dir() or (builds_dir.is_dir() and any(builds_dir.iterdir())):
+        return
+    import shutil
+
+    shutil.copytree(DEMO_BUILDS, builds_dir, dirs_exist_ok=True)
+
+
 app = FastAPI(title="NemoForge")
+if os.environ.get("NF_DEMO_BUILDS", "1") != "0":
+    _seed_demo(settings().builds_dir)
 registry.load(settings().builds_dir)
 
 

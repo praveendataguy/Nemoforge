@@ -60,6 +60,8 @@ export TAVILY_API_KEY=...      # optional, enables web research tools
 python -m nemoforge serve        # open http://127.0.0.1:8000
 ```
 
+The first time the dashboard starts with an empty `builds/` folder, it copies in two recorded real Nemotron runs from `demo/builds/`, so you can explore the dashboard without spending any credit (no API key needed). Set `NF_DEMO_BUILDS=0` to skip this.
+
 Or from the command line:
 
 ```bash

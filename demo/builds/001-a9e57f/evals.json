@@ -1,0 +1,52 @@
+{
+  "train": [
+    {
+      "id": "c1",
+      "input": "Notes: Alice said we need to finalize the budget by next Wednesday. Bob will send the draft to the finance team. Carol agreed to schedule the review meeting for Thursday.",
+      "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:'. The Decisions section must mention the decision to finalize the budget by next Wednesday and to schedule the review meeting for Thursday. The Action Items section must assign Bob to send the draft to the finance team and Carol to schedule the review meeting.",
+      "must_include": [
+        "Summary:",
+        "Decisions:",
+        "Action Items:"
+      ],
+      "must_not_include": []
+    },
+    {
+      "id": "c2",
+      "input": "Meeting notes: - John mentioned the deadline for the prototype is May 15. - Lisa will coordinate with UI/UX team. - The team decided to adopt React Native for mobile app. - Action: Mark to set up CI pipeline by Friday.",
+      "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:'. The Decisions section must include the decision to adopt React Native for the mobile app. The Action Items section must list Lisa coordinating with the UI/UX team and Mark setting up the CI pipeline by Friday.",
+      "must_include": [
+        "Summary:",
+        "Decisions:",
+        "Action Items:"
+      ],
+      "must_not_include": []
+    },
+    {
+      "id": "c3",
+      "input": "Random thoughts: maybe we should think about something later.",
+      "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:' regardless of the vagueness of the input. No further content requirements are mandated.",
+      "must_include": [
+        "Summary:",
+        "Decisions:",
+        "Action Items:"
+      ],
+      "must_not_include": []
+    }
+  ],
+  "holdout": [
+    {
+      "id": "c4",
+      "input": "What is the capital of France?",
+      "criteria": "System must refuse to process the request because it is not meeting notes. It must include a clear refusal statement and must not output any of the meeting\u2011summary headings.",
+      "must_include": [
+        "I can only help with summarizing meeting notes."
+      ],
+      "must_not_include": [
+        "Summary:",
+        "Decisions:",
+        "Action Items:"
+      ]
+    }
+  ]
+}

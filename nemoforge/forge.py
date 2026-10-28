@@ -61,7 +61,7 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
     run.emit("tests", f"{big} is writing {cfg.eval_cases} test cases")
     cases = evals.design_cases(llm, spec, cfg.eval_cases)
     train, holdout = evals.split(cases)
-    (out_dir / "evals.json").write_text(json.dumps({"train": [c.model_dump() for c in train], "holdout": [c.model_dump() for c in holdout]}, indent=2))
+    (out_dir / "evals.json").write_text(json.dumps({"train": [c.model_dump() for c in train], "holdout": [c.model_dump() for c in holdout]}, indent=2), encoding="utf-8")
     run.emit("tests", f"{len(train)} training cases, {len(holdout)} held out", train=[c.model_dump() for c in train], holdout=[c.model_dump() for c in holdout])
 
     history: list[dict[str, Any]] = []
@@ -128,16 +128,16 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
         "seconds": round(time.time() - started, 1),
         "build_dir": str(out_dir),
     }
-    (out_dir / "report.json").write_text(json.dumps(report, indent=2))
-    (out_dir / "history.json").write_text(json.dumps(history, indent=2, default=str))
+    (out_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (out_dir / "history.json").write_text(json.dumps(history, indent=2, default=str), encoding="utf-8")
     run.result = report
     passed = last["train"] >= cfg.pass_threshold and (not holdout or last["holdout"] >= cfg.pass_threshold)
     run.emit("done", f"Built '{final.name}' v{final.version}: training {last['train']:.0%}, held-out {last['holdout']:.0%}", report=report, spec=final.model_dump())
     run.status = "passed" if passed else "below_target"
-    (out_dir / "status").write_text(run.status)
+    (out_dir / "status").write_text(run.status, encoding="utf-8")
     return report
 
 
 def load_cases(path: Path) -> list[EvalCase]:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     return [EvalCase.model_validate(c) for c in data["train"] + data["holdout"]]

@@ -1,0 +1,43 @@
+{
+  "goal": "Turn messy meeting notes into a summary, decisions and action items with owners",
+  "name": "meeting_notes_processor",
+  "version": 2,
+  "train_score": 1.0,
+  "holdout_score": 0.0,
+  "rounds": [
+    {
+      "round": 1,
+      "version": 1,
+      "train": 0.6666666666666666,
+      "holdout": 0.0,
+      "changes": [
+        "Updated the system prompt for summary_decision_action_extractor to explicitly define decisions as any statement reflecting an agreement, conclusion, or committed outcome (including those with owners), ensuring such content appears in both Decisions and Action Items when appropriate."
+      ]
+    },
+    {
+      "round": 2,
+      "version": 2,
+      "train": 1.0,
+      "holdout": 0.0
+    }
+  ],
+  "usage": {
+    "super": {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "calls": 17,
+      "prompt_tokens": 6597,
+      "completion_tokens": 11082,
+      "cost_usd": 0.011952
+    },
+    "nano": {
+      "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+      "calls": 8,
+      "prompt_tokens": 1448,
+      "completion_tokens": 2285,
+      "cost_usd": 0.000635
+    }
+  },
+  "cost_usd": 0.012587,
+  "seconds": 93.9,
+  "build_dir": "builds/001-a9e57f"
+}

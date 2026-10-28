@@ -110,8 +110,8 @@ class SystemSpec(BaseModel):
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(self.model_dump_json(indent=2))
+        path.write_text(self.model_dump_json(indent=2), encoding="utf-8")
 
     @classmethod
     def load(cls, path: Path) -> "SystemSpec":
-        return cls.model_validate(json.loads(path.read_text()))
+        return cls.model_validate(json.loads(path.read_text(encoding="utf-8")))

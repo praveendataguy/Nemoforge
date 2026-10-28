@@ -1,0 +1,308 @@
+[
+  {
+    "round": 1,
+    "version": 1,
+    "train": 0.6666666666666666,
+    "holdout": 0.0,
+    "results": [
+      {
+        "case": {
+          "id": "c1",
+          "input": "Notes: Alice said we need to finalize the budget by next Wednesday. Bob will send the draft to the finance team. Carol agreed to schedule the review meeting for Thursday.",
+          "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:'. The Decisions section must mention the decision to finalize the budget by next Wednesday and to schedule the review meeting for Thursday. The Action Items section must assign Bob to send the draft to the finance team and Carol to schedule the review meeting.",
+          "must_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ],
+          "must_not_include": []
+        },
+        "output": "Summary: The team agreed to finalize the budget by next Wednesday, with Bob sending the draft to finance and Carol scheduling a review meeting for Thursday.\nDecisions:\n- Finalize the budget by next Wednesday.\nAction Items:\n- [Bob] Send the draft to the finance team.\n- [Carol] Schedule the review meeting for Thursday.",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "- Alice said we need to finalize the budget by next Wednesday.\n- Bob will send the draft to the finance team.\n- Carol agreed to schedule the review meeting for Thursday.",
+            "steps": [],
+            "ms": 2918
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: The team agreed to finalize the budget by next Wednesday, with Bob sending the draft to finance and Carol scheduling a review meeting for Thursday.\nDecisions:\n- Finalize the budget by next Wednesday.\nAction Items:\n- [Bob] Send the draft to the finance team.\n- [Carol] Schedule the review meeting for Thursday.",
+            "steps": [],
+            "ms": 8299
+          }
+        ],
+        "ms": 11218,
+        "pass": false,
+        "score": 0.5,
+        "reason": "The Decisions section only mentions finalizing the budget by next Wednesday and omits the decision to schedule the review meeting for Thursday.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c2",
+          "input": "Meeting notes: - John mentioned the deadline for the prototype is May 15. - Lisa will coordinate with UI/UX team. - The team decided to adopt React Native for mobile app. - Action: Mark to set up CI pipeline by Friday.",
+          "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:'. The Decisions section must include the decision to adopt React Native for the mobile app. The Action Items section must list Lisa coordinating with the UI/UX team and Mark setting up the CI pipeline by Friday.",
+          "must_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ],
+          "must_not_include": []
+        },
+        "output": "Summary: The team reviewed the prototype deadline of May 15, agreed to adopt React Native for the mobile app, and assigned Lisa to coordinate with UI/UX and Mark to set up the CI pipeline by Friday.\nDecisions:\n- Adopt React Native for mobile app\nAction Items:\n- [Lisa] Coordinate with UI/UX team\n- [Mark] Set up CI pipeline by Friday",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "- John mentioned the deadline for the prototype is May 15.\n- Lisa will coordinate with UI/UX team.\n- The team decided to adopt React Native for mobile app.\n- Action: Mark to set up CI pipeline by Friday.",
+            "steps": [],
+            "ms": 3824
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: The team reviewed the prototype deadline of May 15, agreed to adopt React Native for the mobile app, and assigned Lisa to coordinate with UI/UX and Mark to set up the CI pipeline by Friday.\nDecisions:\n- Adopt React Native for mobile app\nAction Items:\n- [Lisa] Coordinate with UI/UX team\n- [Mark] Set up CI pipeline by Friday",
+            "steps": [],
+            "ms": 6849
+          }
+        ],
+        "ms": 10673,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The output includes the required headings, lists the React Native adoption decision, and specifies both Lisa's coordination and Mark's CI pipeline action items.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c3",
+          "input": "Random thoughts: maybe we should think about something later.",
+          "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:' regardless of the vagueness of the input. No further content requirements are mandated.",
+          "must_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ],
+          "must_not_include": []
+        },
+        "output": "Summary: The team noted a suggestion to consider something at a later time.\nDecisions:\nNone\nAction Items:\nNone",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "maybe we should think about something later.",
+            "steps": [],
+            "ms": 3051
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: The team noted a suggestion to consider something at a later time.\nDecisions:\nNone\nAction Items:\nNone",
+            "steps": [],
+            "ms": 3475
+          }
+        ],
+        "ms": 6526,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The answer includes the required headings Summary:, Decisions:, and Action Items:",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c4",
+          "input": "What is the capital of France?",
+          "criteria": "System must refuse to process the request because it is not meeting notes. It must include a clear refusal statement and must not output any of the meeting\u2011summary headings.",
+          "must_include": [
+            "I can only help with summarizing meeting notes."
+          ],
+          "must_not_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ]
+        },
+        "output": "Summary: The user asked what the capital of France is.\nDecisions:\nNone\nAction Items:\nNone",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "What is the capital of France?",
+            "steps": [],
+            "ms": 3112
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: The user asked what the capital of France is.\nDecisions:\nNone\nAction Items:\nNone",
+            "steps": [],
+            "ms": 4075
+          }
+        ],
+        "ms": 7187,
+        "pass": false,
+        "score": 0.0,
+        "reason": "missing required text: ['I can only help with summarizing meeting notes.']; contains forbidden text: ['Summary:', 'Decisions:', 'Action Items:']",
+        "by": "rule"
+      }
+    ],
+    "optimizer": {
+      "diagnosis": "The extractor treated 'Carol agreed to schedule the review meeting for Thursday' solely as an action item and missed it as a decision. The prompt did not clearly define what constitutes a decision, causing agreements/commitments to be omitted from the Decisions section when they also have an owner.",
+      "changes": [
+        "Updated the system prompt for summary_decision_action_extractor to explicitly define decisions as any statement reflecting an agreement, conclusion, or committed outcome (including those with owners), ensuring such content appears in both Decisions and Action Items when appropriate."
+      ]
+    }
+  },
+  {
+    "round": 2,
+    "version": 2,
+    "train": 1.0,
+    "holdout": 0.0,
+    "results": [
+      {
+        "case": {
+          "id": "c1",
+          "input": "Notes: Alice said we need to finalize the budget by next Wednesday. Bob will send the draft to the finance team. Carol agreed to schedule the review meeting for Thursday.",
+          "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:'. The Decisions section must mention the decision to finalize the budget by next Wednesday and to schedule the review meeting for Thursday. The Action Items section must assign Bob to send the draft to the finance team and Carol to schedule the review meeting.",
+          "must_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ],
+          "must_not_include": []
+        },
+        "output": "Summary: Alice said we need to finalize the budget by next Wednesday, Bob will send the draft to the finance team, and Carol agreed to schedule the review meeting for Thursday.\nDecisions:\n- Alice said we need to finalize the budget by next Wednesday.\n- Bob will send the draft to the finance team.\n- Carol agreed to schedule the review meeting for Thursday.\nAction Items:\n- [Unassigned] finalize the budget by next Wednesday.\n- [Bob] send the draft to the finance team.\n- [Carol] schedule the review meeting for Thursday.",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "Alice said we need to finalize the budget by next Wednesday.\nBob will send the draft to the finance team.\nCarol agreed to schedule the review meeting for Thursday.",
+            "steps": [],
+            "ms": 3229
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: Alice said we need to finalize the budget by next Wednesday, Bob will send the draft to the finance team, and Carol agreed to schedule the review meeting for Thursday.\nDecisions:\n- Alice said we need to finalize the budget by next Wednesday.\n- Bob will send the draft to the finance team.\n- Carol agreed to schedule the review meeting for Thursday.\nAction Items:\n- [Unassigned] finalize the budget by next Wednesday.\n- [Bob] send the draft to the finance team.\n- [Carol] schedule the review meeting for Thursday.",
+            "steps": [],
+            "ms": 9099
+          }
+        ],
+        "ms": 12328,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The answer includes the required headings, mentions both decisions (finalizing budget by next Wednesday and scheduling review meeting for Thursday), and assigns Bob to send the draft and Carol to schedule the meeting in the Action Items section.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c2",
+          "input": "Meeting notes: - John mentioned the deadline for the prototype is May 15. - Lisa will coordinate with UI/UX team. - The team decided to adopt React Native for mobile app. - Action: Mark to set up CI pipeline by Friday.",
+          "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:'. The Decisions section must include the decision to adopt React Native for the mobile app. The Action Items section must list Lisa coordinating with the UI/UX team and Mark setting up the CI pipeline by Friday.",
+          "must_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ],
+          "must_not_include": []
+        },
+        "output": "Summary: The team agreed on a May 15 deadline for the prototype, assigned Lisa to coordinate with UI/UX, decided to adopt React Native for the mobile app, and tasked Mark with setting up the CI pipeline by Friday.\nDecisions:\n- Team decided to adopt React Native for mobile app.\n- Lisa will coordinate with UI/UX team.\n- Mark to set up CI pipeline by Friday.\n- Deadline for prototype is May 15.\nAction Items:\n- [Lisa] Coordinate with UI/UX team\n- [Mark] Set up CI pipeline by Friday",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "Deadline for prototype is May 15 (John mentioned).\nLisa will coordinate with UI/UX team.\nAdopt React Native for mobile app.\nMark to set up CI pipeline by Friday.",
+            "steps": [],
+            "ms": 5747
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: The team agreed on a May 15 deadline for the prototype, assigned Lisa to coordinate with UI/UX, decided to adopt React Native for the mobile app, and tasked Mark with setting up the CI pipeline by Friday.\nDecisions:\n- Team decided to adopt React Native for mobile app.\n- Lisa will coordinate with UI/UX team.\n- Mark to set up CI pipeline by Friday.\n- Deadline for prototype is May 15.\nAction Items:\n- [Lisa] Coordinate with UI/UX team\n- [Mark] Set up CI pipeline by Friday",
+            "steps": [],
+            "ms": 10801
+          }
+        ],
+        "ms": 16549,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The answer contains the required headings, includes the React Native adoption decision in Decisions, and lists both Lisa's coordination and Mark's CI pipeline task in Action Items.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c3",
+          "input": "Random thoughts: maybe we should think about something later.",
+          "criteria": "Output must contain the headings 'Summary:', 'Decisions:', and 'Action Items:' regardless of the vagueness of the input. No further content requirements are mandated.",
+          "must_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ],
+          "must_not_include": []
+        },
+        "output": "Summary: The meeting noted a suggestion to consider something at a later time.\nDecisions:\nNone\nAction Items:\nNone",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "maybe we should think about something later.",
+            "steps": [],
+            "ms": 2811
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: The meeting noted a suggestion to consider something at a later time.\nDecisions:\nNone\nAction Items:\nNone",
+            "steps": [],
+            "ms": 4600
+          }
+        ],
+        "ms": 7412,
+        "pass": true,
+        "score": 1.0,
+        "reason": "The output includes the required headings 'Summary:', 'Decisions:', and 'Action Items:'.",
+        "by": "judge"
+      },
+      {
+        "case": {
+          "id": "c4",
+          "input": "What is the capital of France?",
+          "criteria": "System must refuse to process the request because it is not meeting notes. It must include a clear refusal statement and must not output any of the meeting\u2011summary headings.",
+          "must_include": [
+            "I can only help with summarizing meeting notes."
+          ],
+          "must_not_include": [
+            "Summary:",
+            "Decisions:",
+            "Action Items:"
+          ]
+        },
+        "output": "Summary: User asked what the capital of France is.\nDecisions:\nNone\nAction Items:\nNone",
+        "trace": [
+          {
+            "agent": "note_cleaner",
+            "tier": "nano",
+            "output": "What is the capital of France?",
+            "steps": [],
+            "ms": 2615
+          },
+          {
+            "agent": "summary_decision_action_extractor",
+            "tier": "super",
+            "output": "Summary: User asked what the capital of France is.\nDecisions:\nNone\nAction Items:\nNone",
+            "steps": [],
+            "ms": 2806
+          }
+        ],
+        "ms": 5422,
+        "pass": false,
+        "score": 0.0,
+        "reason": "missing required text: ['I can only help with summarizing meeting notes.']; contains forbidden text: ['Summary:', 'Decisions:', 'Action Items:']",
+        "by": "rule"
+      }
+    ]
+  }
+]

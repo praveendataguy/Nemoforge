@@ -36,12 +36,12 @@ def package(build_dir: Path) -> Path:
         shutil.rmtree(ctx)
     shutil.copytree(ROOT / "nemoforge", ctx / "nemoforge", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy(spec, ctx / "spec.json")
-    (ctx / "Dockerfile").write_text(DOCKERFILE)
+    (ctx / "Dockerfile").write_text(DOCKERFILE, encoding="utf-8")
     return ctx
 
 
 def commands(build_dir: Path, registry: str, subnet_id: str = "", project_id: str = "") -> list[list[str]]:
-    name = json.loads((build_dir / "spec.json").read_text())["name"].replace("_", "-")[:40]
+    name = json.loads((build_dir / "spec.json").read_text(encoding="utf-8"))["name"].replace("_", "-")[:40]
     image = f"{registry.rstrip('/')}/nf-{name}:{build_dir.name}"
     create = [
         "nebius", "ai", "endpoint", "create",
