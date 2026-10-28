@@ -36,6 +36,8 @@ class Settings:
     # Self-healing: bonus Healer rounds when a build is stuck below target, and rebuilds after a crash.
     heal_rounds: int = field(default_factory=lambda: int(_env("NF_HEAL_ROUNDS", "1")))
     heal_retries: int = field(default_factory=lambda: int(_env("NF_HEAL_RETRIES", "1")))
+    # Smart routing: Nano rates each request before every agent runs and picks Nano, Super or Ultra.
+    smart_routing: bool = field(default_factory=lambda: _env("NF_SMART_ROUTING", "1") in ("1", "true", "yes"))
     eval_cases: int = field(default_factory=lambda: int(_env("NF_EVAL_CASES", "8")))
     tool_timeout: int = field(default_factory=lambda: int(_env("NF_TOOL_TIMEOUT", "20")))
     max_agent_steps: int = field(default_factory=lambda: int(_env("NF_MAX_AGENT_STEPS", "6")))

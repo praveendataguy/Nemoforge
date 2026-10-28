@@ -71,6 +71,12 @@ When a build gets stuck, NemoForge repairs it on its own:
 
 Held-out tests stay hidden: the Healer only sees their scores, never their inputs. The open build shows a **Self-healing** panel with the diagnosis, root causes, repairs and before/after scores, the chart marks the healed round, and the Builds list says **self-healed**. Set `NF_HEAL_ROUNDS` (default 1) and `NF_HEAL_RETRIES` (default 1) to change how many repairs a build may try, or `0` to turn healing off. Every repair is paid from the same build budget.
 
+### Smart router
+
+Before each agent runs, **Nemotron Nano** rates how hard *this* request is for *that* agent's job (1 to 5) and picks the model: 1-2 Nano, 3-4 Super, 5 Ultra. The Architect's tier is the plan: the router can step down at most one tier from it (a step designed for deep reasoning never lands on Nano) and step up as far as a hard request needs. So a one-line invoice runs on Nano, while a 60-minute meeting transcript gets Super or Ultra, from the same agent team. If the rating fails, the agent simply runs on its planned tier.
+
+The router runs in every test during a build and in every playground or deployed call, so test scores always reflect the routed models. The **Nemotron routing** panel shows how many decisions it made, how many requests it sent to a cheaper model than planned or escalated, the average difficulty and the latest decisions with Nano's reason. Test results and playground runs show each agent's route, for example `parser nano→super 4/5`. Set `NF_SMART_ROUTING=0` to turn it off.
+
 ### Nemotron routing
 
 NemoForge picks the smallest Nemotron model that can do each job: Ultra designs the agent team and judges hard tests, Super does the main work, and Nano handles fast, everyday calls such as grading. The **Nemotron routing** panel on the home page shows how many calls and tokens went to each tier, and what the same tokens would have cost if every call had gone to Ultra. The numbers come from real token counts in your builds and the list prices in `nemoforge/config.py`.

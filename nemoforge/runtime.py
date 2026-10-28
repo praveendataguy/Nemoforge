@@ -10,6 +10,7 @@ import time
 from typing import Any
 
 from .config import Settings, settings as load_settings
+from . import router
 from .llm import LLM, parse_json
 from .spec import AgentSpec, SystemSpec
 from .tools import BUILTINS, call_tool, describe
@@ -39,8 +40,9 @@ def _clip(value: Any, limit: int = 4000) -> str:
 
 
 def run_agent(
-    llm: LLM, spec: SystemSpec, agent: AgentSpec, request: str, context: list[dict[str, str]], cfg: Settings
+    llm: LLM, spec: SystemSpec, agent: AgentSpec, request: str, context: list[dict[str, str]], cfg: Settings, tier: str | None = None
 ) -> dict[str, Any]:
+    tier = tier or agent.tier
     tools = _agent_tools(spec, agent)
     system = (
         f"{agent.system_prompt}\n\nYou are '{agent.name}' ({agent.role}) in a team of agents. "
@@ -51,7 +53,7 @@ def run_agent(
     transcript = f"# Request\n{request}" + (f"\n\n# Work so far\n{prior}" if prior else "")
     steps: list[dict[str, Any]] = []
     for _ in range(cfg.max_agent_steps):
-        reply = llm.chat(agent.tier, system, transcript, max_tokens=4096)
+        reply = llm.chat(tier, system, transcript, max_tokens=4096)
         try:
             action = parse_json(reply)
         except ValueError:
@@ -70,7 +72,7 @@ def run_agent(
         output = action.get("output", reply)
         return {"output": output if isinstance(output, str) else json.dumps(output, indent=2), "steps": steps}
     transcript += "\n\nYou have used all your tool calls. Give your final answer now."
-    reply = llm.chat(agent.tier, system, transcript, max_tokens=4096)
+    reply = llm.chat(tier, system, transcript, max_tokens=4096)
     try:
         action = parse_json(reply)
         output = action.get("output", reply) if isinstance(action, dict) else reply
@@ -87,7 +89,10 @@ def run_system(llm: LLM, spec: SystemSpec, request: str, cfg: Settings | None = 
     for name in spec.pipeline:
         agent = spec.agent(name)
         t0 = time.time()
-        res = run_agent(llm, spec, agent, request, context, cfg)
+        # Smart routing: Nano rates this request for this agent and picks the tier.
+        decision = router.route(llm, agent, request, context) if cfg.smart_routing else None
+        tier = decision["tier"] if decision else agent.tier
+        res = run_agent(llm, spec, agent, request, context, cfg, tier)
         context.append({"agent": name, "output": res["output"]})
-        trace.append({"agent": name, "tier": agent.tier, "output": res["output"], "steps": res["steps"], "ms": int((time.time() - t0) * 1000)})
+        trace.append({"agent": name, "tier": tier, "route": decision, "output": res["output"], "steps": res["steps"], "ms": int((time.time() - t0) * 1000)})
     return {"output": context[-1]["output"] if context else "", "trace": trace, "ms": int((time.time() - started) * 1000)}

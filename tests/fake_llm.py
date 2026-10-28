@@ -6,6 +6,7 @@ real builds always run on Nemotron via Nebius Token Factory.
 from __future__ import annotations
 
 import json
+import re
 import threading
 
 SPEC = {
@@ -45,6 +46,11 @@ class FakeLLM:
         if system.startswith("You are a strict grader"):
             ok = "10.0" in user and self.rounds >= 1
             return json.dumps({"pass": ok, "score": 1.0 if ok else 0.2, "reason": "ok" if ok else "total missing"})
+        if system.startswith("You are the Router"):
+            # Long requests are hard, short ones easy, like a real rating would say.
+            n = int(re.search(r"Request length: ([\d,]+)", user).group(1).replace(",", ""))
+            hard = n > 2000
+            return json.dumps({"difficulty": 4 if hard else 1, "why": "long transcript" if hard else "one short invoice line"})
         if system.startswith("You are the Optimizer"):
             with self._lock:
                 self.rounds += 1

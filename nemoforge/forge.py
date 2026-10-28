@@ -27,6 +27,11 @@ def _score(results: list[dict[str, Any]]) -> float:
     return sum(r["pass"] for r in results) / len(results) if results else 0.0
 
 
+def _routes(trace: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The smart router's decision for each agent in one run (empty when routing is off)."""
+    return [t["route"] for t in trace if t.get("route")]
+
+
 def _forge_missing(llm: LLM, spec: SystemSpec, run: Run, cfg: Settings) -> SystemSpec:
     tools = []
     for t in spec.tools:
@@ -125,7 +130,7 @@ def _build(llm: LLM, goal: str, run: Run, cfg: Settings, notes: str, heals: list
             holdout_score=s_hold,
             results=[
                 {k: r[k] for k in ("pass", "score", "reason", "ms")}
-                | {"id": r["case"]["id"], "input": r["case"]["input"], "output": r["output"][:1500], "holdout": held}
+                | {"id": r["case"]["id"], "input": r["case"]["input"], "output": r["output"][:1500], "holdout": held, "routes": _routes(r["trace"])}
                 for held, group in ((False, res_train), (True, res_hold))
                 for r in group
             ],

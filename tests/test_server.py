@@ -67,6 +67,8 @@ def test_logs_and_stats_come_from_stored_builds(tmp_path, monkeypatch):
 
     s = client.get("/api/stats").json()
     assert s["builds"] >= 1 and s["model_calls"] > 0 and s["tests_graded"] > 0
+    smart = s["routing"]["smart"]
+    assert smart["decisions"] > 0 and smart["by_tier"]["nano"] == smart["decisions"] and smart["avg_difficulty"] == 1
     assert s["records"] == len(client.get("/api/logs").json())
 
 

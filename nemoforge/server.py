@@ -175,7 +175,7 @@ def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(d
     record = {"t": started, "input": req.input}
     try:
         out = run_system(llm_factory(None, cfg), spec, req.input, cfg)
-        record |= {"output": out.get("output", ""), "agents": len(out.get("trace", []))}
+        record |= {"output": out.get("output", ""), "agents": len(out.get("trace", [])), "routes": [t["route"] for t in out.get("trace", []) if t.get("route")]}
         return out
     except Exception as err:
         record["error"] = f"{type(err).__name__}: {err}"
