@@ -240,3 +240,33 @@ def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
         "severity": sev_counts,
         "records": len(records),
     }
+
+
+def agents(runs: Iterable[Run]) -> list[dict[str, Any]]:
+    """The agent registry: one entry per build, newest first, with the team that shipped."""
+    out = []
+    for run in sorted((r for r in runs if r.kind == "build"), key=lambda r: r.created, reverse=True):
+        report = _report(run) or {}
+        done = _by_stage(run, "done")
+        spec = done[-1]["data"].get("spec") if done else None
+        if spec is None:  # still running or crashed: show the Architect's latest design, if any
+            spec = next((e["data"]["spec"] for e in reversed(run.events) if "spec" in e.get("data", {})), None)
+        team = []
+        if spec:
+            tiers = {a["name"]: a.get("tier", "nano") for a in spec.get("agents", [])}
+            team = [{"name": n, "tier": tiers.get(n, "nano")} for n in spec.get("pipeline", [])]
+        out.append({
+            "build": run.id,
+            "name": report.get("name") or (spec or {}).get("name") or "(designing)",
+            "goal": run.target,
+            "summary": (spec or {}).get("summary", ""),
+            "status": run.status,
+            "version": report.get("version"),
+            "train_score": report.get("train_score"),
+            "holdout_score": report.get("holdout_score"),
+            "cost_usd": _cost(run),
+            "created": run.created,
+            "team": team,
+            "tools": len((spec or {}).get("tools", [])),
+        })
+    return out

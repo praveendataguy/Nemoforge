@@ -68,3 +68,14 @@ def test_logs_and_stats_come_from_stored_builds(tmp_path, monkeypatch):
     s = client.get("/api/stats").json()
     assert s["builds"] >= 1 and s["model_calls"] > 0 and s["tests_graded"] > 0
     assert s["records"] == len(client.get("/api/logs").json())
+
+
+def test_agent_registry_lists_built_agents(tmp_path, monkeypatch):
+    monkeypatch.setenv("NF_OWNER", "Dana")
+    client = _client(tmp_path, monkeypatch)
+    run = client.post("/api/builds", json={"goal": "check invoice totals"}).json()
+    _wait(client, run["id"])
+    assert client.get("/api/config").json()["owner"] == "Dana"
+    agent = next(a for a in client.get("/api/agents").json() if a["build"] == run["id"])
+    assert agent["name"] == "invoice_checker" and agent["status"] == "passed"
+    assert [t["name"] for t in agent["team"]] == ["parser", "writer"] and agent["tools"] == 1

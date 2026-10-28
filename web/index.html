@@ -176,6 +176,36 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .kpi:hover { transform: translateY(-2px); }
 .kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
 .kpi.volume { --g: var(--cyan); }
+/* Agent registry (shown in the Agent team panel when no build is open) */
+.teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.teamHead h3 { margin: 0; }
+.teamHead button { margin-left: auto; min-height: 30px; font-size: 12.5px; padding: 0 12px; }
+.owner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.02); margin-bottom: 14px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 700 16px "Space Grotesk", system-ui; color: #061003; background: conic-gradient(from 200deg, var(--accent2), var(--cyan), var(--accent)); box-shadow: 0 0 16px -2px rgba(118,185,0,.6); flex: none; }
+.owner .who small { display: block; color: var(--muted); font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.owner .who b { font-size: 16px; }
+.owner .facts { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.spot { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; padding: 14px; border-radius: 12px; border: 1px solid rgba(118,185,0,.35); background: linear-gradient(135deg, rgba(118,185,0,.10), rgba(0,217,255,.05) 60%, transparent); margin-bottom: 14px; }
+@media (max-width: 700px) { .spot { grid-template-columns: 1fr; } }
+.spot .tag { font: 600 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); }
+.spot .nm { font: 700 22px/1.2 "Space Grotesk", system-ui; margin: 4px 0; word-break: break-word; }
+.spot .gl { color: var(--muted); font-size: 13.5px; margin-bottom: 10px; }
+.pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pipe .node { font: 12px var(--mono); padding: 3px 8px; border: 1px solid var(--line); border-radius: 8px; background: rgba(4,7,10,.6); }
+.pipe .node i { font-style: normal; font-size: 10px; margin-left: 6px; }
+.pipe .node i.nano { color: var(--nano); } .pipe .node i.super { color: var(--super); } .pipe .node i.ultra { color: var(--ultra); }
+.pipe .ar { color: var(--muted); }
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-content: start; }
+.metric { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: rgba(4,7,10,.5); }
+.metric small { display: block; color: var(--muted); font-size: 11.5px; }
+.metric b { font: 700 18px "Space Grotesk", system-ui; }
+.st { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+.st.passed { color: var(--accent2); } .st.below_target { color: var(--warn); } .st.failed { color: var(--crit); } .st.running { color: var(--cyan); }
+.reg { width: 100%; }
+.reg tr.regrow { cursor: pointer; } .reg tr.regrow:hover td { background: rgba(255,255,255,.03); }
+.reg td.num { font-family: var(--mono); text-align: right; } .reg th.num { text-align: right; } .reg th, .reg td.num, .reg td .st { white-space: nowrap; }
+.reg .nm2 { font-weight: 600; } .reg .gl2 { color: var(--muted); font-size: 12px; display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 700px) { .reg .hide-sm { display: none; } }
 .overlay { background: rgba(2,5,8,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .overlay > .panel { background: rgba(9,14,19,.96); }
 pre { background: rgba(3,6,9,.8); }
@@ -209,7 +239,9 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel history"><h3>Builds</h3><div id="history" class="empty">None yet.</div></div>
     </aside>
     <section>
-      <div class="panel" id="teamPanel"><h3>Agent team</h3><p class="summary" id="summary">The Architect's design appears here.</p><div class="team" id="team"></div></div>
+      <div class="panel" id="teamPanel"><div class="teamHead"><h3 id="teamTitle">Agent registry</h3><button class="ghost hidden" id="backBtn">All agents</button></div>
+        <div id="registry"><p class="empty">Loading agents...</p></div>
+        <div id="teamView" class="hidden"><p class="summary" id="summary">The Architect's design appears here.</p><div class="team" id="team"></div></div></div>
       <div class="panel hidden" id="scorePanel"><h3>Test score by round</h3>
         <div class="scores"><div class="big" id="trainBig">-<small>training tests</small></div><div class="big" id="holdBig">-<small>held-out tests (never shown to the optimizer)</small></div><svg id="chart" viewBox="0 0 360 120" width="360" height="120" role="img" aria-label="Score by round"></svg></div>
       </div>
@@ -246,7 +278,7 @@ const EXAMPLES = [
   "Turn messy meeting notes into a summary, a decision list and action items with owners and due dates.",
   "Check a job description for biased or exclusionary wording and suggest inclusive rewrites.",
 ];
-let current = null, rounds = [], source = null, needCode = false, replay = false;
+let owner = "", current = null, rounds = [], source = null, needCode = false, replay = false;
 const REPLAY_TIP = "Replay mode: set NEBIUS_API_KEY to start new builds";
 function headers() {
   const h = { "Content-Type": "application/json" };
@@ -267,7 +299,7 @@ EXAMPLES.forEach(t => { const b = document.createElement("button"); b.className 
 
 async function loadConfig() {
   const c = await (await fetch("/api/config")).json();
-  replay = !c.nebius_key;
+  replay = !c.nebius_key; owner = c.owner || ""; loadAgents();
   $("chips").innerHTML = ["nano", "super", "ultra"].map(t => `<span class="chip">${t}: ${esc(c.models[t].split("/").pop())}</span>`).join("")
     + (replay ? `<span class="chip replay" title="${REPLAY_TIP}">replay mode: showing recorded real runs</span>`
     : `<span class="chip ok">Token Factory connected</span>`
@@ -279,7 +311,7 @@ async function loadConfig() {
 }
 
 async function loadHistory() {
-  loadStats();
+  loadStats(); if (!current) loadAgents();
   const runs = await (await fetch("/api/builds")).json();
   if (!runs.length) return;
   $("history").classList.remove("empty");
@@ -288,6 +320,7 @@ async function loadHistory() {
 }
 
 function reset() {
+  $("registry").classList.add("hidden"); $("teamView").classList.remove("hidden"); $("backBtn").classList.remove("hidden"); $("teamTitle").textContent = "Agent team";
   rounds = []; for (const k in live) delete live[k];
   $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = "";
   $("summary").textContent = "The Architect is designing...";
@@ -473,6 +506,38 @@ $("logsBtn").onclick = () => openLogs();
 $("logsClose").onclick = closeLogs;
 $("logsView").onclick = e => { if (e.target === $("logsView")) closeLogs(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("logsView").classList.contains("hidden")) closeLogs(); });
+
+// ---- Agent registry: who built what, from the stored builds ----
+const STATUS = { passed: "Passed", below_target: "Below target", failed: "Failed", running: "Building" };
+const ago = t => { const m = Math.round((Date.now() / 1000 - t) / 60); return m < 60 ? `${Math.max(m, 0)} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
+async function loadAgents() {
+  const list = await (await fetch("/api/agents")).json();
+  const who = owner || "You";
+  const live = list.filter(a => a.status === "running").length;
+  const head = `<div class="owner"><div class="avatar">${esc(who.slice(0, 1).toUpperCase())}</div><div class="who"><small>Owner</small><b>${esc(who)}</b></div>`
+    + `<div class="facts"><span class="chip">${list.length} agent${list.length === 1 ? "" : "s"} built</span>${live ? `<span class="chip ok">${live} building now</span>` : ""}<span class="chip ${replay ? "replay" : "ok"}">${replay ? "replay mode" : "live on Token Factory"}</span></div></div>`;
+  if (!list.length) { $("registry").innerHTML = head + `<p class="empty">No agents yet. Describe a job above and press Build it.</p>`; return; }
+  const a = list[0];
+  const pipe = a.team.length ? a.team.map((n, i) => (i ? `<span class="ar">&rarr;</span>` : "") + `<span class="node">${esc(n.name)}<i class="${n.tier}">${n.tier}</i></span>`).join("") : `<span class="empty">Team not designed yet.</span>`;
+  const spot = `<div class="spot"><div><div class="tag">Latest agent · ${ago(a.created)}</div><div class="nm">${esc(a.name)}</div><div class="gl">${esc(a.goal)}</div><div class="pipe">${pipe}</div>`
+    + `<div style="margin-top:12px"><button class="ghost" data-open="${esc(a.build)}">Open this agent</button></div></div>`
+    + `<div class="metrics"><div class="metric"><small>Status</small><span class="st ${a.status}">${STATUS[a.status] || a.status}</span></div>`
+    + `<div class="metric"><small>Shipped version</small><b>${a.version ? "v" + a.version : "–"}</b></div>`
+    + `<div class="metric"><small>Held-out score</small><b>${orDash(a.holdout_score, pct)}</b></div>`
+    + `<div class="metric"><small>Training score</small><b>${orDash(a.train_score, pct)}</b></div>`
+    + `<div class="metric"><small>Agents · tools</small><b>${a.team.length} · ${a.tools}</b></div>`
+    + `<div class="metric"><small>Build cost</small><b>$${a.cost_usd.toFixed(4)}</b></div></div></div>`;
+  const table = `<table class="reg"><thead><tr><th>Agent</th><th class="hide-sm">Owner</th><th>Status</th><th class="num">Held-out</th><th class="num hide-sm">Cost</th><th class="hide-sm">Built</th></tr></thead><tbody>`
+    + list.map(x => `<tr class="regrow" data-open="${esc(x.build)}" tabindex="0"><td><span class="nm2">${esc(x.name)}</span><span class="gl2">${esc(x.goal)}</span></td><td class="hide-sm">${esc(who)}</td><td><span class="st ${x.status}">${STATUS[x.status] || x.status}</span></td><td class="num">${orDash(x.holdout_score, pct)}</td><td class="num hide-sm">$${x.cost_usd.toFixed(4)}</td><td class="hide-sm">${ago(x.created)}</td></tr>`).join("") + `</tbody></table>`;
+  $("registry").innerHTML = head + spot + table;
+  $("registry").querySelectorAll("[data-open]").forEach(el => { el.onclick = () => watch(el.dataset.open); el.onkeydown = e => { if (e.key === "Enter") watch(el.dataset.open); }; });
+}
+$("backBtn").onclick = () => {
+  if (source) source.close(); current = null; reset(); history.replaceState(null, "", location.pathname);
+  $("registry").classList.remove("hidden"); $("teamView").classList.add("hidden"); $("backBtn").classList.add("hidden"); $("teamTitle").textContent = "Agent registry";
+  $("timeline").innerHTML = `<li class="empty" style="padding-left:0">Start a build to see each step here.</li>`;
+  $("usage").className = "empty"; $("usage").textContent = "No calls yet."; loadAgents();
+};
 
 loadConfig(); loadHistory();
 if (location.hash.length > 1) watch(location.hash.slice(1));

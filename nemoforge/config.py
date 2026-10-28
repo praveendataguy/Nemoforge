@@ -48,6 +48,8 @@ class Settings:
     budget_usd: float = field(default_factory=lambda: float(_env("NF_BUDGET_USD", "0.50")))
     # Lite mode sends Ultra's jobs to Super: much cheaper, for trial credits.
     lite: bool = field(default_factory=lambda: _env("NF_LITE", "0") in ("1", "true", "yes"))
+    # Shown as the owner of every agent in the dashboard's agent registry.
+    owner: str = field(default_factory=lambda: _env("NF_OWNER", "Praveen"))
 
 
 def settings() -> Settings:
