@@ -11,7 +11,6 @@ import ast
 import json
 import math
 import os
-import resource
 import shutil
 import subprocess
 import sys
@@ -131,6 +130,12 @@ sys.stdout.write("\n__NF_RESULT__" + json.dumps(out, default=str))
 """
 
 
+try:
+    import resource
+except ImportError:  # Windows: no rlimits, the timeout still applies
+    resource = None  # type: ignore[assignment]
+
+
 def _limits() -> None:  # runs in the child before exec
     resource.setrlimit(resource.RLIMIT_CPU, (15, 15))
     resource.setrlimit(resource.RLIMIT_AS, (1 << 30, 1 << 30))
@@ -158,6 +163,8 @@ def run_python_tool(code: str, args: dict[str, Any], timeout: int = 20) -> dict[
         with open(os.path.join(tmp, "tool.py"), "w", encoding="utf-8") as f:
             f.write(code)
         env = {"PATH": "/usr/bin:/bin", "HOME": tmp, "PYTHONDONTWRITEBYTECODE": "1"}
+        if os.name == "nt":  # Python will not start on Windows without SYSTEMROOT
+            env["SYSTEMROOT"] = os.environ.get("SYSTEMROOT", r"C:\Windows")
         cmd = [*_no_net_prefix(), sys.executable, "-I", "-c", _HARNESS]
         try:
             proc = subprocess.run(
@@ -168,7 +175,7 @@ def run_python_tool(code: str, args: dict[str, Any], timeout: int = 20) -> dict[
                 cwd=tmp,
                 env=env,
                 timeout=timeout,
-                preexec_fn=_limits,
+                preexec_fn=_limits if resource is not None else None,
             )
         except subprocess.TimeoutExpired:
             return {"error": f"tool timed out after {timeout}s"}
