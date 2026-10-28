@@ -45,15 +45,25 @@ def _failure_report(results: list[dict[str, Any]], limit: int = 5) -> str:
 
 
 def improve(llm: LLM, spec: SystemSpec, results: list[dict[str, Any]]) -> tuple[SystemSpec, dict[str, Any]]:
-    current = spec.model_dump(include={"agents", "pipeline"})
-    current["custom_tools"] = [{"name": t.name, "description": t.description, "parameters": t.parameters} for t in spec.tools]
+    current = current_design(spec)
     passed = sum(r["pass"] for r in results)
     user = (
         f"Goal: {spec.goal}\n\nCurrent design:\n{json.dumps(current, indent=2)}\n\n"
         f"Score: {passed}/{len(results)} tests passed.\n\nFailures:\n{_failure_report(results)}"
     )
     data = chat_json(llm, "ultra", SYSTEM.format(builtins=describe([b[0] for b in BUILTINS.values()])), user, max_tokens=8000)
-    update: dict[str, Any] = {"version": spec.version + 1}
+    return apply(spec, data), {"diagnosis": data.get("diagnosis", ""), "changes": data.get("changes", [])}
+
+
+def current_design(spec: SystemSpec) -> dict[str, Any]:
+    current = spec.model_dump(include={"agents", "pipeline"})
+    current["custom_tools"] = [{"name": t.name, "description": t.description, "parameters": t.parameters} for t in spec.tools]
+    return current
+
+
+def apply(spec: SystemSpec, data: dict[str, Any], version: int | None = None) -> SystemSpec:
+    """Turn an Optimizer-shaped reply into the next version of the spec."""
+    update: dict[str, Any] = {"version": version or spec.version + 1}
     if data.get("agents"):
         update["agents"] = data["agents"]
     if data.get("pipeline"):
@@ -69,5 +79,4 @@ def improve(llm: LLM, spec: SystemSpec, results: list[dict[str, Any]]) -> tuple[
             t["code"] = ""  # blank code tells NemoForge to re-forge it
             t["description"] += f" (Fix: {rewrite[t['name']]})" if rewrite[t["name"]] else ""
     update["tools"] = tools
-    new_spec = SystemSpec.model_validate({**spec.model_dump(), **update})
-    return new_spec, {"diagnosis": data.get("diagnosis", ""), "changes": data.get("changes", [])}
+    return SystemSpec.model_validate({**spec.model_dump(), **update})

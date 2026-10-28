@@ -62,6 +62,15 @@ python -m nemoforge serve        # open http://127.0.0.1:8000
 
 The first time the dashboard starts with an empty `builds/` folder, it copies in two recorded real Nemotron runs from `demo/builds/`, so you can explore the dashboard without spending any credit (no API key needed). Set `NF_DEMO_BUILDS=0` to skip this.
 
+### Self-healing builds
+
+When a build gets stuck, NemoForge repairs it on its own:
+
+- **Stuck below target.** If every improvement round is used up and the team still misses the target, the **Healer** (Nemotron Ultra) reviews all the rounds at once: the scores, every change the Optimizer made, and the tests that failed in every round. It looks for what the round-by-round Optimizer kept missing (a structural problem, overfitting, a change that made things worse, a broken tool), then redesigns the team from the best version so far. A bonus round runs the repaired team on the same tests and the dashboard shows the result, for example "training 50% → 100%".
+- **Crash.** If a stage crashes, the Healer reads the error and the last steps, explains it in plain words, and rebuilds with notes that avoid the crash. Errors that a redesign cannot fix (a missing API key, no network, budget used up) are not retried.
+
+Held-out tests stay hidden: the Healer only sees their scores, never their inputs. The open build shows a **Self-healing** panel with the diagnosis, root causes, repairs and before/after scores, the chart marks the healed round, and the Builds list says **self-healed**. Set `NF_HEAL_ROUNDS` (default 1) and `NF_HEAL_RETRIES` (default 1) to change how many repairs a build may try, or `0` to turn healing off. Every repair is paid from the same build budget.
+
 ### Nemotron routing
 
 NemoForge picks the smallest Nemotron model that can do each job: Ultra designs the agent team and judges hard tests, Super does the main work, and Nano handles fast, everyday calls such as grading. The **Nemotron routing** panel on the home page shows how many calls and tokens went to each tier, and what the same tokens would have cost if every call had gone to Ultra. The numbers come from real token counts in your builds and the list prices in `nemoforge/config.py`.

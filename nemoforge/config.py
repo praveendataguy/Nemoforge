@@ -33,6 +33,9 @@ class Settings:
     # Optimise until this share of eval cases pass, or until max_iterations rounds.
     pass_threshold: float = field(default_factory=lambda: float(_env("NF_PASS_THRESHOLD", "0.9")))
     max_iterations: int = field(default_factory=lambda: int(_env("NF_MAX_ITERATIONS", "4")))
+    # Self-healing: bonus Healer rounds when a build is stuck below target, and rebuilds after a crash.
+    heal_rounds: int = field(default_factory=lambda: int(_env("NF_HEAL_ROUNDS", "1")))
+    heal_retries: int = field(default_factory=lambda: int(_env("NF_HEAL_RETRIES", "1")))
     eval_cases: int = field(default_factory=lambda: int(_env("NF_EVAL_CASES", "8")))
     tool_timeout: int = field(default_factory=lambda: int(_env("NF_TOOL_TIMEOUT", "20")))
     max_agent_steps: int = field(default_factory=lambda: int(_env("NF_MAX_AGENT_STEPS", "6")))
