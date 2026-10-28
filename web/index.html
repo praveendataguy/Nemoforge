@@ -197,6 +197,30 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .tryBar button { min-height: 34px; font-size: 13px; padding: 0 14px; }
 .tryBar span { font: 12px var(--mono); color: var(--muted); }
 /* Agent registry panel */
+/* Left column: logs, memory, docs */
+.mini { display: flex; gap: 8px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--line); cursor: pointer; font-size: 13px; }
+.mini:hover .txt { color: var(--accent); }
+.mini .txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mini .meta { display: block; color: var(--muted); font: 11px var(--mono); }
+.sevcounts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.sevcounts .sev { cursor: pointer; }
+.mem h4 { margin: 12px 0 6px; font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.mem h4:first-child { margin-top: 0; }
+.mem .lesson { border-left: 2px solid var(--ultra); padding: 2px 0 2px 10px; margin: 6px 0; font-size: 13px; }
+.mem .lesson.healer { border-color: var(--heal); }
+.mem .lesson small { display: block; color: var(--muted); font: 11px var(--mono); }
+.mem .lesson ul { margin: 4px 0 0; padding-left: 16px; color: var(--muted); }
+.mem details { border-top: 1px solid var(--line); padding: 6px 0; font-size: 13px; }
+.mem details summary { cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mem details pre { max-height: 220px; overflow: auto; }
+.docs details { border-top: 1px solid var(--line); padding: 8px 0; font-size: 13.5px; }
+.docs details:first-of-type { border-top: 0; padding-top: 0; }
+.docs summary { cursor: pointer; font-weight: 600; }
+.docs p, .docs ol { color: var(--muted); margin: 6px 0 0; }
+.docs ol { padding-left: 18px; } .docs li { margin: 3px 0; } .docs b { color: var(--text); }
+.docs code { font: 12px var(--mono); color: var(--accent); }
+.docs .sev { margin: 0 2px; }
+.memToggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-left: auto; cursor: pointer; }
 .teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .teamHead h3 { margin: 0; }
 .teamHead button { margin-left: auto; min-height: 30px; font-size: 12.5px; padding: 0 12px; }
@@ -283,6 +307,26 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel"><h3>Build log</h3><ul class="timeline" id="timeline"><li class="empty" style="padding-left:0">Start a build to see each step here.</li></ul></div>
       <div class="panel"><h3>Model usage</h3><div id="usage" class="empty">No calls yet.</div></div>
       <div class="panel history"><h3>Builds</h3><div id="history" class="empty">None yet.</div></div>
+      <div class="panel" id="logsPanel"><div class="teamHead"><h3>Observability logs</h3><button class="ghost" id="logsAll">Open all</button></div><div id="logMini"><p class="empty">Loading...</p></div></div>
+      <div class="panel" id="memPanel"><h3>Agent memory</h3><div id="memory"><p class="empty">Open an agent to see what it remembers.</p></div></div>
+      <div class="panel docs" id="docsPanel"><h3>Documentation</h3>
+        <details open><summary>What NemoForge does</summary><p>You describe a job in one sentence. NemoForge designs a small team of AI agents for it, writes their tools, tests the team on cases it has never seen, improves it round by round and ships the best version. Everything runs on NVIDIA Nemotron through Nebius Token Factory.</p></details>
+        <details><summary>The build pipeline</summary><ol>
+          <li><b>Architect</b> (Ultra) designs the team: agents, order, tools, model per agent.</li>
+          <li><b>Toolsmith</b> (Super) writes each custom Python tool and checks it in a sandbox.</li>
+          <li><b>Test designer</b> (Ultra) writes test cases; a third are held out and never shown to the optimizer.</li>
+          <li><b>Evaluate</b>: the team answers every test and a Super judge grades each answer.</li>
+          <li><b>Optimizer</b> (Ultra) reads the failures and fixes prompts, tools or tiers.</li>
+          <li><b>Healer</b> (Ultra) steps in when the build is stuck or crashes, then a bonus round checks the repair.</li>
+          <li>The best round ships. Try it in the playground or deploy it.</li></ol></details>
+        <details><summary>Smart router</summary><p>Before every agent runs, Nano rates the request from 1 to 5: 1-2 run on Nano, 3-4 on Super, 5 on Ultra. It never drops more than one tier below the Architect's plan. The routing panel shows every decision and the money saved.</p></details>
+        <details><summary>Held-out tests and overfitting</summary><p>The held-out score is the honest number. If training rises while held-out falls, NemoForge flags overfitting and ships an earlier, better version.</p></details>
+        <details><summary>Observability and severity</summary><p>Every input is a log record: build goals, graded tests and playground runs. <span class="sev critical">critical</span> crashes, <span class="sev high">high</span> weak held-out or big gaps, <span class="sev medium">medium</span> below target or interrupted, <span class="sev low">low</span> notes such as repairs, <span class="sev info">info</span> all good.</p></details>
+        <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team its last 3 runs as context, for example to follow up on open items from the previous meeting.</p></details>
+        <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>.</p><pre>python -m nemoforge serve
+python -m nemoforge build "goal" --budget 1
+python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
+      </div>
     </aside>
     <section>
       <div class="panel hidden" id="teamPanel"><div class="teamHead"><h3>Agent team</h3><button class="ghost" id="backBtn">Close build</button></div>
@@ -295,7 +339,7 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
       <div class="panel hidden playground" id="tryPanel"><h3>Try the finished agent</h3>
-        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span></div>
+        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (last 3 runs)</label></div>
         <textarea id="tryInput"></textarea><button id="tryBtn">Run</button>
         <div id="tryOut"></div>
       </div>
@@ -361,7 +405,7 @@ async function loadConfig() {
 }
 
 async function loadHistory() {
-  loadStats(); loadAgents();
+  loadStats(); loadAgents(); loadLogsMini(); if (current) loadMemory();
   const runs = await (await fetch("/api/builds")).json();
   if (!runs.length) return;
   $("history").classList.remove("empty");
@@ -494,9 +538,31 @@ function settleCrashHeals(ok) {
   $("heals").querySelectorAll(".heal .outcome .pending").forEach(p => { if (p.textContent.startsWith("Rebuilding")) p.outerHTML = `<span class="${ok ? "ok" : "no"}"><b>${ok ? "Rebuilt and finished" : "Rebuild failed"}</b></span>`; });
 }
 
+// ---- Left column: latest log records, the open agent's memory ----
+async function loadLogsMini() {
+  const all = await (await fetch("/api/logs")).json();
+  const mine = current ? all.filter(r => r.build === current) : all;
+  const count = sv => mine.filter(r => r.severity === sv).length;
+  const latest = [...mine].sort((a, b) => b.t - a.t).slice(0, 6);
+  $("logMini").innerHTML = (mine.length ? `<div class="sevcounts">${SEVS.filter(count).map(sv => `<span class="sev ${sv}" data-sev="${sv}" title="Open ${sv} records">${count(sv)} ${sv}</span>`).join("")}</div>` : "")
+    + (latest.length ? latest.map(r => `<div class="mini" data-id="${esc(r.id)}" tabindex="0"><span class="sev ${r.severity}">${r.severity[0].toUpperCase()}</span><div class="txt">${esc(r.input.slice(0, 140))}<span class="meta">${KIND[r.kind]} · ${when(r.t)}</span></div></div>`).join("")
+    : `<p class="empty">No records yet.</p>`)
+    + `<p class="empty" style="margin:8px 0 0;font-size:12px">${current ? `This build: ${mine.length} records` : `${all.length} records across all builds`}</p>`;
+  $("logMini").querySelectorAll(".mini").forEach(el => { const go = async () => { await openLogs(); showLog(el.dataset.id); }; el.onclick = go; el.onkeydown = e => { if (e.key === "Enter") go(); }; });
+  $("logMini").querySelectorAll("[data-sev]").forEach(el => el.onclick = () => openLogs([el.dataset.sev]));
+}
+async function loadMemory() {
+  if (!current) { $("memory").innerHTML = `<p class="empty">Open an agent to see what it remembers.</p>`; return; }
+  const r = await fetch(`/api/builds/${current}/memory`); if (!r.ok) return;
+  const m = await r.json();
+  const lessons = m.lessons.length ? m.lessons.map(l => `<div class="lesson ${l.source}"><small>${l.source === "healer" ? "Healer root cause" : "Optimizer lesson"}</small>${esc(l.text)}${l.changes.length ? `<ul>${l.changes.slice(0, 4).map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}</div>`).join("") : `<p class="empty">No lessons: the first version passed or the build is still running.</p>`;
+  const runs = m.runs.length ? m.runs.map(x => `<details><summary>${esc(x.input.slice(0, 80))}</summary><span class="empty">${when(x.t)}</span><pre>${esc(x.output)}</pre></details>`).join("") : `<p class="empty">No runs yet. Try the agent in the playground.</p>`;
+  $("memory").innerHTML = `<div class="mem"><h4>Lessons from its build (${m.lessons.length})</h4>${lessons}<h4>Recent runs (${m.total_runs})</h4>${runs}</div>`;
+}
+
 async function watch(id) {
   if (source) source.close();
-  current = id; reset(); location.hash = id;
+  current = id; reset(); location.hash = id; loadMemory(); loadLogsMini();
   source = new EventSource(`/api/builds/${id}/events`);
   source.onmessage = m => { const e = JSON.parse(m.data); onEvent(e); if (e.stage === "end") source.close(); };
   const poll = setInterval(async () => { if (current !== id) return clearInterval(poll); const r = await (await fetch(`/api/builds/${id}`)).json(); renderUsage(r.usage); if (r.status !== "running") clearInterval(poll); }, 3000);
@@ -540,8 +606,8 @@ $("loadFile").onchange = async () => {
 $("tryBtn").onclick = async () => {
   const input = $("tryInput").value.trim(); if (!input) return;
   $("tryBtn").disabled = true; $("tryOut").innerHTML = `<p class="empty">Running the team on Nemotron...</p>`;
-  const r = await post(`/api/builds/${current}/invoke`, { input });
-  const j = await r.json(); $("tryBtn").disabled = replay;
+  const r = await post(`/api/builds/${current}/invoke`, { input, use_memory: $("useMemory").checked });
+  const j = await r.json(); $("tryBtn").disabled = replay; loadMemory(); loadLogsMini();
   if (!r.ok) return $("tryOut").innerHTML = `<pre>${esc(JSON.stringify(j))}</pre>`;
   $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${t.route ? routeChip(t.route) : `${esc(t.agent)} · ${t.tier}`} · ${t.ms} ms${t.route && t.route.why ? ` · ${esc(t.route.why)}` : ""} · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
 };
@@ -685,8 +751,9 @@ async function loadAgents() {
   });
   $("agentRegistry").querySelectorAll("[data-open]").forEach(el => { const go = () => { watch(el.dataset.open); window.scrollTo({ top: $("teamPanel").offsetTop - 90, behavior: "smooth" }); }; el.onclick = go; el.onkeydown = e => { if (e.key === "Enter") go(); }; });
 }
+$("logsAll").onclick = () => openLogs();
 $("backBtn").onclick = () => {
-  if (source) source.close(); current = null; reset(); history.replaceState(null, "", location.pathname);
+  if (source) source.close(); current = null; reset(); history.replaceState(null, "", location.pathname); loadMemory(); loadLogsMini();
   $("teamPanel").classList.add("hidden");
   $("timeline").innerHTML = `<li class="empty" style="padding-left:0">Start a build to see each step here.</li>`;
   $("usage").className = "empty"; $("usage").textContent = "No calls yet."; loadAgents();

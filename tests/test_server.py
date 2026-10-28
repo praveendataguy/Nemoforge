@@ -90,3 +90,23 @@ def test_invoke_accepts_a_one_hour_transcript(tmp_path, monkeypatch):
     transcript = "Alice: Widget 2 x 5.00, we agreed to ship on Friday.\n" * 1200  # ~62k chars
     assert client.post(f"/api/builds/{run['id']}/invoke", json={"input": transcript}).status_code == 200
     assert client.post(f"/api/builds/{run['id']}/invoke", json={"input": "x" * 200_001}).status_code == 422
+
+
+def test_agent_memory_lessons_runs_and_recall(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    run = client.post("/api/builds", json={"goal": "check invoice totals"}).json()
+    _wait(client, run["id"])
+    mem = client.get(f"/api/builds/{run['id']}/memory").json()
+    assert mem["lessons"][0]["source"] == "optimizer" and mem["runs"] == []
+
+    client.post(f"/api/builds/{run['id']}/invoke", json={"input": "Widget 2 x 5.00"})
+    client.post(f"/api/builds/{run['id']}/invoke", json={"input": "Gadget 1 x 3.00", "use_memory": True})
+    mem = client.get(f"/api/builds/{run['id']}/memory").json()
+    assert mem["total_runs"] == 2 and mem["runs"][0]["input"] == "Gadget 1 x 3.00"
+    lines = (tmp_path / run["id"] / "invocations.jsonl").read_text().splitlines()
+    import json as _json
+
+    first, second = (_json.loads(x) for x in lines)
+    assert "memory" not in first and second["memory"] == 1
+    assert second["input"] == "Gadget 1 x 3.00"  # the log keeps what the user typed, not the memory context
+    assert client.get("/api/builds/nope/memory").status_code == 404
