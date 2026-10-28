@@ -45,6 +45,25 @@ def _shipped_round(run: Run) -> dict[str, Any] | None:
     return rounds[-1] if rounds else None
 
 
+def heals(run: Run) -> list[dict[str, Any]]:
+    """Each repair the Healer made in this build, and whether it fixed the build."""
+    out = []
+    for e in _by_stage(run, "healer"):
+        d = e.get("data", {})
+        if d.get("kind") == "stuck" and "root_causes" in d:
+            out.append({"kind": "stuck", "message": e["message"], "fixed": None})
+        elif d.get("kind") == "result" and out and out[-1]["kind"] == "stuck":
+            out[-1]["fixed"] = bool(d.get("fixed"))
+            out[-1]["result"] = e["message"]
+        elif d.get("kind") == "crash" and "fix_notes" in d:
+            out.append({"kind": "crash", "message": e["message"], "fixed": None})
+    # A crash repair worked if the build went on to finish.
+    for h in out:
+        if h["kind"] == "crash":
+            h["fixed"] = run.status in ("passed", "below_target")
+    return out
+
+
 def overfit_events(run: Run) -> list[tuple[int, int]]:
     """Rounds where training held or rose but held-out dropped: overfitting the held-out tests caught."""
     rounds = [r for r in _rounds(run) if r.get("holdout_score") is not None]
@@ -90,6 +109,13 @@ def _build_record(run: Run) -> dict[str, Any]:
             reasons.append(("low", f"Overfitting caught: v{b} did as well or better on training but worse on held-out than v{a}, {kept}."))
         for e in _by_stage(run, "budget"):
             reasons.append(("low", e["message"]))
+        for h in heals(run):
+            if h["kind"] == "crash":
+                reasons.append(("low", f"Self-healed a crash: {h['message']}"))
+            elif h["fixed"]:
+                reasons.append(("info", f"{h['result']}."))
+            else:
+                reasons.append(("low", f"Healer tried a repair: {h.get('result') or h['message']}."))
         if run.status == "passed" and not reasons:
             reasons.append(("info", "Passed training and held-out targets."))
     return {
@@ -239,6 +265,8 @@ def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
         "avg_seconds": sum(durations) / len(durations) if durations else None,
         "overfit_caught": sum(len(overfit_events(r)) for r in runs),
         "overfit_builds": sum(1 for r in runs if overfit_events(r)),
+        "heals": sum(len(heals(r)) for r in runs),
+        "heals_fixed": sum(1 for r in runs for h in heals(r) if h["fixed"]),
         "alerts": sev_counts["critical"] + sev_counts["high"],
         "severity": sev_counts,
         "records": len(records),

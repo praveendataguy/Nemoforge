@@ -10,7 +10,7 @@
 :root {
   --bg: #0d0f0c; --panel: #151813; --panel2: #1b1f18; --line: #2a3026; --text: #e8ebe4; --muted: #9aa393;
   --accent: #76b900; --accent-soft: rgba(118,185,0,.14); --bad: #ff6b5e; --bad-soft: rgba(255,107,94,.12);
-  --warn: #f2b84b; --nano: #6fc3ff; --super: #c79bff; --ultra: #76b900;
+  --warn: #f2b84b; --nano: #6fc3ff; --super: #c79bff; --ultra: #76b900; --heal: #ff5fd2; --heal-soft: rgba(255,95,210,.12);
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
@@ -52,6 +52,23 @@ body { overflow-x: hidden; }
 .timeline li.eval::before, .timeline li.tests::before { background: var(--nano); }
 .timeline li.done::before { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .timeline li.error::before, .timeline li.budget::before { background: var(--bad); }
+.timeline li.healer::before { background: var(--heal); box-shadow: 0 0 0 4px var(--heal-soft); }
+.timeline li.healer .stage { color: var(--heal); }
+/* Self-healing panel */
+#healPanel { border-color: var(--heal); background: linear-gradient(135deg, var(--heal-soft), transparent 60%), var(--panel); }
+#healPanel h3 { color: var(--heal); }
+.heal { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-top: 10px; background: var(--panel2); }
+.heal .hk { font: 11px var(--mono); color: var(--heal); text-transform: uppercase; letter-spacing: .08em; }
+.heal p { margin: 6px 0; }
+.heal ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; }
+.heal .lbl2 { font: 11px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 10px; }
+.heal .tag { display: inline-block; font: 11.5px var(--mono); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; margin: 2px 4px 0 0; }
+.heal .tag.warn { color: var(--warn); border-color: var(--warn); }
+.heal .outcome { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.heal .outcome b { font-size: 22px; }
+.heal .outcome .ok { color: var(--accent); } .heal .outcome .meh { color: var(--warn); } .heal .outcome .no { color: var(--bad); }
+.heal .pending { color: var(--muted); font-style: italic; }
+.history a span.healed { color: var(--heal); }
 .timeline .stage { font: 11px var(--mono); color: var(--muted); display: block; }
 .timeline li.live::before { animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px var(--accent-soft); } }
@@ -259,6 +276,7 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel hidden" id="scorePanel"><h3>Test score by round</h3>
         <div class="scores"><div class="big" id="trainBig">-<small>training tests</small></div><div class="big" id="holdBig">-<small>held-out tests (never shown to the optimizer)</small></div><svg id="chart" viewBox="0 0 360 120" width="360" height="120" role="img" aria-label="Score by round"></svg></div>
       </div>
+      <div class="panel hidden" id="healPanel"><h3>Self-healing</h3><p class="summary">When a build is stuck below target or crashes, Nemotron Ultra reviews every round, finds the root cause and repairs the team. A bonus round then checks the repair on the same tests.</p><div id="heals"></div></div>
       <div class="panel hidden" id="resultsPanel"><h3>Latest test results</h3><table><thead><tr><th>Result</th><th>Test input</th><th>Grader's reason</th></tr></thead><tbody id="results"></tbody></table></div>
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
@@ -333,16 +351,16 @@ async function loadHistory() {
   const runs = await (await fetch("/api/builds")).json();
   if (!runs.length) return;
   $("history").classList.remove("empty");
-  $("history").innerHTML = runs.map(r => `<a href="#${r.id}" data-id="${r.id}">${esc(r.target.slice(0, 60))}<span>${r.status}</span></a>`).join("");
+  $("history").innerHTML = runs.map(r => `<a href="#${r.id}" data-id="${r.id}">${esc(r.target.slice(0, 60))}<span${r.result && r.result.self_healed ? ' class="healed"' : ""}>${r.result && r.result.self_healed ? "self-healed" : r.status}</span></a>`).join("");
   $("history").querySelectorAll("a").forEach(a => a.onclick = e => { e.preventDefault(); watch(a.dataset.id); });
 }
 
 function reset() {
   $("teamPanel").classList.remove("hidden");
   rounds = []; for (const k in live) delete live[k];
-  $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = "";
+  $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = ""; $("heals").innerHTML = ""; healNext = false;
   $("summary").textContent = "The Architect is designing...";
-  ["scorePanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
+  ["scorePanel", "healPanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
   $("tryOut").innerHTML = ""; $("deployOut").classList.add("hidden");
   $("holdBig").querySelector("small").textContent = "held-out tests (never shown to the optimizer)";
 }
@@ -371,7 +389,8 @@ function renderChart() {
   $("chart").innerHTML = `<line x1="${P}" x2="${W - P}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)"/><line x1="${P}" x2="${W - P}" y1="${y(1)}" y2="${y(1)}" stroke="var(--line)" stroke-dasharray="3 4"/>`
     + `<text x="0" y="${y(1) + 4}">100%</text><text x="6" y="${y(0) + 4}">0%</text>`
     + rounds.map((r, i) => `<text x="${x(i) - 8}" y="${H - 4}">v${r.version}</text>`).join("")
-    + line("train", "var(--nano)") + line("holdout", "var(--warn)");
+    + line("train", "var(--nano)") + line("holdout", "var(--warn)")
+    + rounds.map((r, i) => r.heal ? `<circle cx="${x(i)}" cy="${y(Math.max(r.train, r.holdout))}" r="8" fill="none" stroke="var(--heal)" stroke-width="2"/><text x="${x(i) - 12}" y="${P - 8}" style="fill:var(--heal)">heal</text>` : "").join("");
   const last = rounds[rounds.length - 1];
   $("trainBig").firstChild.nodeValue = pct(last.train); $("holdBig").firstChild.nodeValue = pct(last.holdout);
 }
@@ -408,19 +427,57 @@ function onEvent(e) {
   if (d.spec) renderTeam(d.spec);
   if (e.stage === "toolsmith" && d.code !== undefined) renderTool(e);
   if (e.stage === "eval" && d.results) {
-    rounds.push({ version: d.version, train: d.train_score, holdout: d.holdout_score });
+    rounds.push({ version: d.version, train: d.train_score, holdout: d.holdout_score, heal: healNext }); healNext = false;
     $("scorePanel").classList.remove("hidden"); renderChart(); renderResults(d.results);
   }
   if (e.stage === "optimizer" && d.changes) {
     $("changesPanel").classList.remove("hidden");
     $("changes").insertAdjacentHTML("beforeend", `<div class="change"><b>v${rounds.length} → v${rounds.length + 1}</b>: ${esc(e.message)}<ul>${d.changes.map(c => `<li>${esc(c)}</li>`).join("")}</ul></div>`);
   }
+  if (e.stage === "healer") renderHeal(e);
+  if (e.stage === "done" || e.stage === "error") settleCrashHeals(e.stage === "done");
   if (e.stage === "done") {
     renderUsage(d.report.usage);
     if (d.report.train_score !== undefined) {  // the shipped version is the best round, not necessarily the last
       $("trainBig").firstChild.nodeValue = pct(d.report.train_score); $("holdBig").firstChild.nodeValue = pct(d.report.holdout_score);
       $("holdBig").querySelector("small").textContent = `held-out tests, shipped v${d.report.version} (never shown to the optimizer)`;
     } $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); }
+}
+
+// ---- Self-healing: the Healer's diagnosis, root causes, changes and the bonus round's result ----
+let healNext = false;
+function renderHeal(e) {
+  const d = e.data || {};
+  if (d.kind === "result") {
+    const box = $("heals").lastElementChild; if (!box) return;
+    const cls = d.fixed ? "ok" : d.improved ? "meh" : "no";
+    const out = box.querySelector(".outcome");
+    out.innerHTML = `<span class="${cls}"><b>${d.fixed ? "Fixed" : d.improved ? "Improved" : "Not fixed"}</b></span>`
+      + `<span>training <b>${pct(d.before.train)}</b> → <b class="${cls}">${pct(d.after.train)}</b></span>`
+      + `<span>held-out <b>${pct(d.before.holdout)}</b> → <b class="${cls}">${pct(d.after.holdout)}</b></span>`;
+    return;
+  }
+  const isRepair = (d.kind === "stuck" && d.root_causes) || (d.kind === "crash" && d.fix_notes !== undefined);
+  if (!isRepair) return;
+  $("healPanel").classList.remove("hidden");
+  const list = (title, xs) => xs && xs.length ? `<div class="lbl2">${title}</div><ul>${xs.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+  let html;
+  if (d.kind === "stuck") {
+    healNext = true;
+    html = `<div class="hk">Stuck below target · repaired from v${d.from_version}</div><p>${esc(e.message)}</p>`
+      + list("Root causes", d.root_causes) + list("Repairs", d.changes)
+      + (d.always_failing && d.always_failing.length ? `<div class="lbl2">Tests that failed in every round</div>${d.always_failing.map(t => `<span class="tag">${esc(t)}</span>`).join("")}` : "")
+      + (d.overfitting ? `<div><span class="tag warn">overfitting detected: rules replaced with general ones</span></div>` : "")
+      + `<div class="outcome"><span class="pending">Bonus round running to check the repair...</span></div>`;
+  } else {
+    html = `<div class="hk">Crash · rebuilding with a fix</div><p>${esc(d.diagnosis)}</p>` + list("Fix for the next attempt", [d.fix_notes])
+      + `<div class="outcome"><span class="pending">Rebuilding...</span></div>`;
+  }
+  $("heals").insertAdjacentHTML("beforeend", `<div class="heal">${html}</div>`);
+}
+// A crash repair is done once the rebuilt attempt finishes.
+function settleCrashHeals(ok) {
+  $("heals").querySelectorAll(".heal .outcome .pending").forEach(p => { if (p.textContent.startsWith("Rebuilding")) p.outerHTML = `<span class="${ok ? "ok" : "no"}"><b>${ok ? "Rebuilt and finished" : "Rebuild failed"}</b></span>`; });
 }
 
 async function watch(id) {
@@ -494,7 +551,7 @@ async function loadStats() {
     ["volume", "Tokens processed", fmtN(s.tokens), `${fmtN(s.prompt_tokens)} in · ${fmtN(s.completion_tokens)} out`],
     ["quality", "Pass rate", orDash(s.pass_rate, pct), "builds that hit the training and held-out target"],
     ["quality", "Avg held-out score", orDash(s.avg_holdout, pct), `shipped versions, on tests never shown to the optimizer · training ${orDash(s.avg_train, pct)}`],
-    ["quality", "Tests graded", fmtN(s.tests_graded), s.tests_graded ? `${pct(s.tests_passed / s.tests_graded)} passed, across all rounds` : "none yet"],
+    ["quality", "Self-heals", `${s.heals_fixed}/${s.heals}`, `stuck or crashed builds the Healer repaired · ${fmtN(s.tests_graded)} tests graded` + (s.tests_graded ? `, ${pct(s.tests_passed / s.tests_graded)} passed` : "")],
     ["cost", "Total spend", "$" + s.total_cost_usd.toFixed(4), s.builds ? `$${(s.total_cost_usd / s.builds).toFixed(4)} per build at list prices` : "at list prices"],
     ["cost", "Avg build time", orDash(s.avg_seconds, v => v >= 90 ? (v / 60).toFixed(1) + " min" : Math.round(v) + " s"), "from goal to shipped version"],
     ["risk", "Overfitting caught", s.overfit_caught, `rounds where training held or rose but held-out dropped · ${s.overfit_builds} build${s.overfit_builds === 1 ? "" : "s"}`],

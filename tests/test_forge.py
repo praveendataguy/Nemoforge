@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -64,3 +65,82 @@ def test_split_keeps_every_kind_in_training():
     cases = [EvalCase(id=f"c{i}", input="x", criteria="y", kind=k) for i, k in enumerate(kinds)]
     train, hold = split(cases)
     assert sorted(c.kind for c in hold) == ["edge", "refuse", "typical"]
+
+
+class StuckLLM(FakeLLM):
+    """The Optimizer's fixes never help; only the Healer finds the real cause."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.healed = False
+
+    def chat(self, tier, system, user, *, max_tokens=4096):
+        if system.startswith("You are the Optimizer"):
+            return json.dumps({"diagnosis": "Try a longer prompt.", "changes": ["longer prompt"], "agents": SPEC["agents"], "pipeline": SPEC["pipeline"]})
+        if system.startswith("You are the Healer"):
+            self.healed = True
+            self.rounds = 1  # the grader now passes, as if the redesign fixed the cause
+            assert "failed in EVERY round: c" in user and "Widget" in user
+            return json.dumps({"diagnosis": "The writer never saw the tool result.", "root_causes": ["writer has no access to the total"],
+                               "overfitting": False, "changes": ["pass the total to the writer"], "agents": SPEC["agents"], "pipeline": SPEC["pipeline"]})
+        return super().chat(tier, system, user, max_tokens=max_tokens)
+
+
+def test_healer_repairs_a_stuck_build(tmp_path: Path):
+    cfg = Settings(builds_dir=tmp_path, max_iterations=2, eval_cases=6, heal_rounds=1)
+    run = registry.new("build", "check invoices")
+    llm = StuckLLM()
+    report = build(llm, "check invoices", run, cfg)
+    assert llm.healed and run.status == "passed" and report["self_healed"]
+    assert [r["train"] for r in report["rounds"]] == [0.0, 0.0, 1.0]
+    assert report["version"] == 3 and "healed" in report["rounds"][1]
+    heal = report["healing"][0]
+    assert heal["kind"] == "stuck" and heal["fixed"] and heal["before"]["train"] == 0.0 and heal["after"]["train"] == 1.0
+    assert any(e["stage"] == "healer" and e["message"].startswith("Self-heal worked") for e in run.events)
+    from nemoforge import insights
+
+    s = insights.stats([run], tmp_path)
+    assert s["heals"] == 1 and s["heals_fixed"] == 1
+
+
+def test_no_healing_when_turned_off(tmp_path: Path):
+    cfg = Settings(builds_dir=tmp_path, max_iterations=2, eval_cases=6, heal_rounds=0)
+    run = registry.new("build", "check invoices")
+    llm = StuckLLM()
+    report = build(llm, "check invoices", run, cfg)
+    assert not llm.healed and run.status == "below_target" and report["healing"] == []
+
+
+class CrashOnceLLM(FakeLLM):
+    """The first Architect reply is not JSON at all, so the first attempt crashes."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.designs = 0
+        self.notes = ""
+
+    def chat(self, tier, system, user, *, max_tokens=4096):
+        if system.startswith("You are the Architect"):
+            self.designs += 1
+            if self.designs <= 2:  # chat_json retries once, so crash twice
+                return "Sorry, I cannot design that."
+            self.notes = user
+        if system.startswith("You are the Healer"):
+            return json.dumps({"diagnosis": "The Architect replied in prose.", "fix_notes": "Keep the design small.", "retry": True})
+        return super().chat(tier, system, user, max_tokens=max_tokens)
+
+
+def test_healer_rebuilds_after_a_crash(tmp_path: Path):
+    cfg = Settings(builds_dir=tmp_path, max_iterations=3, eval_cases=6)
+    run = registry.new("build", "check invoices")
+    llm = CrashOnceLLM()
+    report = build(llm, "check invoices", run, cfg)
+    assert run.status == "passed" and report["self_healed"]
+    assert report["healing"][0]["kind"] == "crash" and "Keep the design small." in llm.notes
+
+
+def test_healer_does_not_retry_a_missing_key(tmp_path: Path):
+    from nemoforge.healer import heal_crash
+
+    out = heal_crash(FakeLLM(), RuntimeError("NEBIUS_API_KEY is not set."), "", [])
+    assert out["retry"] is False
