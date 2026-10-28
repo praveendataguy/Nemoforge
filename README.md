@@ -64,7 +64,7 @@ The first time the dashboard starts with an empty `builds/` folder, it copies in
 
 ### Dashboard cards and observability logs
 
-When no build is open, the Agent team panel shows the **agent registry**: the owner (set `NF_OWNER`, default Praveen), a spotlight on the latest agent with its team, scores and cost, and a table of every agent built. Click one to open it, and **All agents** to go back.
+The **agent registry** panel, above the cards, shows the owner (set `NF_OWNER`, default Praveen), a spotlight on the latest agent with its team, scores and cost, and a table of every agent built. Click one to open it; **Close build** hides the open build again.
 
 Below the agent team, ten cards summarise every build stored in `builds/`: volume (builds, model calls, tokens), quality (pass rate, average held-out score, tests graded), cost and speed (total spend, average build time) and risk (overfitting caught, high and critical alerts). Every number is computed from the recorded events, not estimated.
 

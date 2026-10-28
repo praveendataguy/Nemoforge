@@ -176,7 +176,7 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .kpi:hover { transform: translateY(-2px); }
 .kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
 .kpi.volume { --g: var(--cyan); }
-/* Agent registry (shown in the Agent team panel when no build is open) */
+/* Agent registry panel */
 .teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .teamHead h3 { margin: 0; }
 .teamHead button { margin-left: auto; min-height: 30px; font-size: 12.5px; padding: 0 12px; }
@@ -239,9 +239,8 @@ pre { background: rgba(3,6,9,.8); }
       <div class="panel history"><h3>Builds</h3><div id="history" class="empty">None yet.</div></div>
     </aside>
     <section>
-      <div class="panel" id="teamPanel"><div class="teamHead"><h3 id="teamTitle">Agent registry</h3><button class="ghost hidden" id="backBtn">All agents</button></div>
-        <div id="registry"><p class="empty">Loading agents...</p></div>
-        <div id="teamView" class="hidden"><p class="summary" id="summary">The Architect's design appears here.</p><div class="team" id="team"></div></div></div>
+      <div class="panel hidden" id="teamPanel"><div class="teamHead"><h3>Agent team</h3><button class="ghost" id="backBtn">Close build</button></div>
+        <p class="summary" id="summary">The Architect's design appears here.</p><div class="team" id="team"></div></div>
       <div class="panel hidden" id="scorePanel"><h3>Test score by round</h3>
         <div class="scores"><div class="big" id="trainBig">-<small>training tests</small></div><div class="big" id="holdBig">-<small>held-out tests (never shown to the optimizer)</small></div><svg id="chart" viewBox="0 0 360 120" width="360" height="120" role="img" aria-label="Score by round"></svg></div>
       </div>
@@ -256,6 +255,7 @@ pre { background: rgba(3,6,9,.8); }
         <div class="row"><input id="registry" placeholder="Registry, e.g. cr.eu-north1.nebius.cloud/&lt;registry-id&gt;"><input id="subnet" placeholder="Subnet ID (optional)"><button class="ghost" id="deployBtn">Show deploy commands</button></div>
         <pre id="deployOut" class="hidden"></pre>
       </div>
+      <div class="panel" id="registryPanel"><h3>Agent registry</h3><div id="agentRegistry"><p class="empty">Loading agents...</p></div></div>
       <div class="panel" id="kpiPanel"><h3>Dashboard: all builds</h3><div class="kpis" id="kpis"><p class="empty">Loading...</p></div>
         <div class="kpiNote">Computed from the builds stored on disk. Refreshes when a build finishes.</div></div>
     </section>
@@ -311,7 +311,7 @@ async function loadConfig() {
 }
 
 async function loadHistory() {
-  loadStats(); if (!current) loadAgents();
+  loadStats(); loadAgents();
   const runs = await (await fetch("/api/builds")).json();
   if (!runs.length) return;
   $("history").classList.remove("empty");
@@ -320,7 +320,7 @@ async function loadHistory() {
 }
 
 function reset() {
-  $("registry").classList.add("hidden"); $("teamView").classList.remove("hidden"); $("backBtn").classList.remove("hidden"); $("teamTitle").textContent = "Agent team";
+  $("teamPanel").classList.remove("hidden");
   rounds = []; for (const k in live) delete live[k];
   $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = "";
   $("summary").textContent = "The Architect is designing...";
@@ -516,7 +516,7 @@ async function loadAgents() {
   const live = list.filter(a => a.status === "running").length;
   const head = `<div class="owner"><div class="avatar">${esc(who.slice(0, 1).toUpperCase())}</div><div class="who"><small>Owner</small><b>${esc(who)}</b></div>`
     + `<div class="facts"><span class="chip">${list.length} agent${list.length === 1 ? "" : "s"} built</span>${live ? `<span class="chip ok">${live} building now</span>` : ""}<span class="chip ${replay ? "replay" : "ok"}">${replay ? "replay mode" : "live on Token Factory"}</span></div></div>`;
-  if (!list.length) { $("registry").innerHTML = head + `<p class="empty">No agents yet. Describe a job above and press Build it.</p>`; return; }
+  if (!list.length) { $("agentRegistry").innerHTML = head + `<p class="empty">No agents yet. Describe a job above and press Build it.</p>`; return; }
   const a = list[0];
   const pipe = a.team.length ? a.team.map((n, i) => (i ? `<span class="ar">&rarr;</span>` : "") + `<span class="node">${esc(n.name)}<i class="${n.tier}">${n.tier}</i></span>`).join("") : `<span class="empty">Team not designed yet.</span>`;
   const spot = `<div class="spot"><div><div class="tag">Latest agent · ${ago(a.created)}</div><div class="nm">${esc(a.name)}</div><div class="gl">${esc(a.goal)}</div><div class="pipe">${pipe}</div>`
@@ -529,12 +529,12 @@ async function loadAgents() {
     + `<div class="metric"><small>Build cost</small><b>$${a.cost_usd.toFixed(4)}</b></div></div></div>`;
   const table = `<table class="reg"><thead><tr><th>Agent</th><th class="hide-sm">Owner</th><th>Status</th><th class="num">Held-out</th><th class="num hide-sm">Cost</th><th class="hide-sm">Built</th></tr></thead><tbody>`
     + list.map(x => `<tr class="regrow" data-open="${esc(x.build)}" tabindex="0"><td><span class="nm2">${esc(x.name)}</span><span class="gl2">${esc(x.goal)}</span></td><td class="hide-sm">${esc(who)}</td><td><span class="st ${x.status}">${STATUS[x.status] || x.status}</span></td><td class="num">${orDash(x.holdout_score, pct)}</td><td class="num hide-sm">$${x.cost_usd.toFixed(4)}</td><td class="hide-sm">${ago(x.created)}</td></tr>`).join("") + `</tbody></table>`;
-  $("registry").innerHTML = head + spot + table;
-  $("registry").querySelectorAll("[data-open]").forEach(el => { el.onclick = () => watch(el.dataset.open); el.onkeydown = e => { if (e.key === "Enter") watch(el.dataset.open); }; });
+  $("agentRegistry").innerHTML = head + spot + table;
+  $("agentRegistry").querySelectorAll("[data-open]").forEach(el => { const go = () => { watch(el.dataset.open); window.scrollTo({ top: $("teamPanel").offsetTop - 90, behavior: "smooth" }); }; el.onclick = go; el.onkeydown = e => { if (e.key === "Enter") go(); }; });
 }
 $("backBtn").onclick = () => {
   if (source) source.close(); current = null; reset(); history.replaceState(null, "", location.pathname);
-  $("registry").classList.remove("hidden"); $("teamView").classList.add("hidden"); $("backBtn").classList.add("hidden"); $("teamTitle").textContent = "Agent registry";
+  $("teamPanel").classList.add("hidden");
   $("timeline").innerHTML = `<li class="empty" style="padding-left:0">Start a build to see each step here.</li>`;
   $("usage").className = "empty"; $("usage").textContent = "No calls yet."; loadAgents();
 };
