@@ -60,8 +60,7 @@ def build(llm: LLM, goal: str, run: Run, cfg: Settings | None = None, notes: str
 
     run.emit("tests", f"{big} is writing {cfg.eval_cases} test cases")
     cases = evals.design_cases(llm, spec, cfg.eval_cases)
-    n_hold = max(1, len(cases) // 3) if len(cases) >= 3 else 0
-    train, holdout = cases[: len(cases) - n_hold], cases[len(cases) - n_hold :]
+    train, holdout = evals.split(cases)
     (out_dir / "evals.json").write_text(json.dumps({"train": [c.model_dump() for c in train], "holdout": [c.model_dump() for c in holdout]}, indent=2))
     run.emit("tests", f"{len(train)} training cases, {len(holdout)} held out", train=[c.model_dump() for c in train], holdout=[c.model_dump() for c in holdout])
 

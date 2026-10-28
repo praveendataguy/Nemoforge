@@ -49,3 +49,18 @@ def test_build_loop_improves_and_saves(tmp_path: Path):
     assert run.status == "passed"
     assert (tmp_path / run.id / "spec.json").exists()
     assert SystemSpec.load(tmp_path / run.id / "spec.json").version == 2
+
+
+def test_split_keeps_every_kind_in_training():
+    from nemoforge.evals import split
+    from nemoforge.spec import EvalCase
+
+    kinds = ["typical", "typical", "edge", "refuse"]
+    cases = [EvalCase(id=f"c{i}", input="x", criteria="y", kind=k) for i, k in enumerate(kinds)]
+    train, hold = split(cases)
+    assert [c.id for c in hold] == ["c1"]
+    assert {c.kind for c in train} == {"typical", "edge", "refuse"}
+    kinds = ["typical"] * 4 + ["edge"] * 3 + ["refuse"] * 2
+    cases = [EvalCase(id=f"c{i}", input="x", criteria="y", kind=k) for i, k in enumerate(kinds)]
+    train, hold = split(cases)
+    assert sorted(c.kind for c in hold) == ["edge", "refuse", "typical"]

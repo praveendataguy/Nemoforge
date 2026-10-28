@@ -60,6 +60,8 @@ class EvalCase(BaseModel):
     # Optional cheap deterministic checks run before the judge.
     must_include: list[str] = Field(default_factory=list)
     must_not_include: list[str] = Field(default_factory=list)
+    # typical, edge or refuse. Used to split training and held-out tests evenly.
+    kind: str = "typical"
 
 
 class SystemSpec(BaseModel):
