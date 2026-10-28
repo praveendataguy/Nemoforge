@@ -1,0 +1,242 @@
+"""Observability logs and dashboard KPIs, computed from the builds stored on disk.
+
+Every number here is derived from recorded events (model calls, eval rounds, the final
+report); nothing is estimated. Severity comes from fixed rules, and each record carries
+the reasons that set it, so the dashboard can show why.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any, Iterable
+
+from .events import Run
+
+SEVERITIES = ["critical", "high", "medium", "low", "info"]
+_RANK = {s: i for i, s in enumerate(SEVERITIES)}
+
+
+def _worst(reasons: list[tuple[str, str]]) -> str:
+    return min((s for s, _ in reasons), key=_RANK.__getitem__, default="info")
+
+
+def _by_stage(run: Run, stage: str) -> list[dict[str, Any]]:
+    return [e for e in run.events if e.get("stage") == stage]
+
+
+def _rounds(run: Run) -> list[dict[str, Any]]:
+    return [e["data"] for e in _by_stage(run, "eval") if "results" in e.get("data", {})]
+
+
+def _report(run: Run) -> dict[str, Any] | None:
+    done = _by_stage(run, "done")
+    return done[-1]["data"].get("report") if done else None
+
+
+def _shipped_round(run: Run) -> dict[str, Any] | None:
+    """The eval round of the version that shipped (the best one), else the latest round."""
+    rounds = _rounds(run)
+    report = _report(run)
+    if report is not None:
+        for r in reversed(rounds):
+            if r.get("version") == report.get("version"):
+                return r
+    return rounds[-1] if rounds else None
+
+
+def overfit_events(run: Run) -> list[tuple[int, int]]:
+    """Rounds where training held or rose but held-out dropped: overfitting the held-out tests caught."""
+    rounds = [r for r in _rounds(run) if r.get("holdout_score") is not None]
+    return [
+        (a["version"], b["version"])
+        for a, b in zip(rounds, rounds[1:])
+        if b["train_score"] >= a["train_score"] and b["holdout_score"] < a["holdout_score"]
+    ]
+
+
+def _duration(run: Run) -> float | None:
+    report = _report(run)
+    if report and report.get("seconds") is not None:
+        return float(report["seconds"])
+    if run.status != "running" and len(run.events) > 1:
+        return round(run.events[-1]["t"] - run.events[0]["t"], 1)
+    return None
+
+
+def _build_record(run: Run) -> dict[str, Any]:
+    reasons: list[tuple[str, str]] = []
+    report = _report(run)
+    errors = _by_stage(run, "error")
+    if run.status == "running":
+        reasons.append(("info", "Build is still running."))
+    elif run.status == "failed" or report is None:
+        msg = errors[-1]["message"] if errors else "the build stopped before it finished"
+        reasons.append(("critical", f"Build crashed: {msg}"))
+    else:
+        hold, train = report.get("holdout_score"), report.get("train_score", 0.0)
+        if run.status == "below_target":
+            reasons.append(("medium", f"Shipped v{report['version']} is below the pass target."))
+        if hold is not None and hold < 0.5:
+            reasons.append(("high", f"Held-out score of the shipped version is {hold:.0%}: it may not work on new inputs."))
+        if hold is not None and train - hold >= 0.5:
+            reasons.append(("high", f"Training {train:.0%} vs held-out {hold:.0%}: a gap this big suggests overfitting."))
+        if hold is not None and hold - train >= 0.5:
+            reasons.append(("medium", f"Held-out {hold:.0%} vs training {train:.0%}: too few held-out tests to trust the gap."))
+        for a, b in overfit_events(run):
+            kept = "so NemoForge shipped an earlier version" if b != report["version"] else "but it still ranked best overall"
+            reasons.append(("low", f"Overfitting caught: v{b} did as well or better on training but worse on held-out than v{a}, {kept}."))
+        for e in _by_stage(run, "budget"):
+            reasons.append(("low", e["message"]))
+        if run.status == "passed" and not reasons:
+            reasons.append(("info", "Passed training and held-out targets."))
+    return {
+        "id": f"{run.id}:build",
+        "kind": "build",
+        "build": run.id,
+        "t": run.created,
+        "input": run.target,
+        "output": (report or {}).get("name", ""),
+        "detail": {
+            "status": run.status,
+            "version": (report or {}).get("version"),
+            "train_score": (report or {}).get("train_score"),
+            "holdout_score": (report or {}).get("holdout_score"),
+            "cost_usd": _cost(run),
+            "seconds": _duration(run),
+            "model_calls": len(_model_calls(run)),
+        },
+        "severity": _worst(reasons),
+        "reasons": [{"severity": s, "text": t} for s, t in reasons],
+    }
+
+
+def _test_records(run: Run) -> list[dict[str, Any]]:
+    shipped = _shipped_round(run)
+    if shipped is None:
+        return []
+    t = next((e["t"] for e in _by_stage(run, "eval") if e.get("data") is shipped), run.created)
+    out = []
+    for r in shipped["results"]:
+        kind = "held-out" if r.get("holdout") else "training"
+        if not r.get("pass"):
+            sev = "high" if r.get("holdout") else "medium"
+            why = f"Failed a {kind} test (score {r.get('score', 0):.0%})." + (
+                " Held-out tests are never shown to the optimizer, so this is how the agent does on new inputs." if r.get("holdout") else ""
+            )
+        elif (r.get("score") or 0) < 1:
+            sev, why = "low", f"Passed the {kind} test with a partial score of {r.get('score', 0):.0%}."
+        else:
+            sev, why = "info", f"Passed the {kind} test."
+        reasons = [{"severity": sev, "text": why}]
+        if r.get("reason"):
+            reasons.append({"severity": "info", "text": f"Grader: {r['reason']}"})
+        out.append({
+            "id": f"{run.id}:test:{r.get('id')}",
+            "kind": "test",
+            "build": run.id,
+            "t": t,
+            "input": r.get("input", ""),
+            "output": r.get("output", ""),
+            "detail": {"case": r.get("id"), "set": kind, "version": shipped.get("version"), "score": r.get("score"), "ms": r.get("ms")},
+            "severity": sev,
+            "reasons": reasons,
+        })
+    return out
+
+
+def invocations_path(builds_dir: Path, run_id: str) -> Path:
+    return builds_dir / run_id / "invocations.jsonl"
+
+
+def _try_records(run: Run, builds_dir: Path) -> list[dict[str, Any]]:
+    path = invocations_path(builds_dir, run.id)
+    if not path.exists():
+        return []
+    out = []
+    lines = [ln for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    for i, line in enumerate(lines, 1):
+        rec = json.loads(line)
+        if rec.get("error"):
+            reasons = [{"severity": "critical", "text": f"The agent team crashed: {rec['error']}"}]
+        elif not (rec.get("output") or "").strip():
+            reasons = [{"severity": "medium", "text": "The agent team returned an empty answer."}]
+        else:
+            reasons = [{"severity": "info", "text": "Answered without errors. Playground runs are not graded."}]
+        out.append({
+            "id": f"{run.id}:try:{i}",
+            "kind": "try",
+            "build": run.id,
+            "t": rec.get("t", run.created),
+            "input": rec.get("input", ""),
+            "output": rec.get("output") or rec.get("error") or "",
+            "detail": {"ms": rec.get("ms"), "agents": rec.get("agents")},
+            "severity": reasons[0]["severity"],
+            "reasons": reasons,
+        })
+    return out
+
+
+def logs(runs: Iterable[Run], builds_dir: Path) -> list[dict[str, Any]]:
+    """One record per input NemoForge handled: build goals, graded test cases and playground runs."""
+    runs = list(runs)
+    records: list[dict[str, Any]] = []
+    for run in runs:
+        if run.kind != "build":
+            continue
+        records.append(_build_record(run))
+        records += _test_records(run)
+        records += _try_records(run, builds_dir)
+    # Newest build first; inside a build, the goal then its tests then playground runs.
+    order = {"build": 0, "test": 1, "try": 2}
+    created = {r.id: r.created for r in runs if r.kind == "build"}
+    records.sort(key=lambda r: (-created.get(r["build"], r["t"]), order[r["kind"]], r["t"]))
+    return records
+
+
+def _model_calls(run: Run) -> list[dict[str, Any]]:
+    return [e["data"] for e in _by_stage(run, "model") if "prompt_tokens" in e.get("data", {})]
+
+
+def _cost(run: Run) -> float:
+    calls = _model_calls(run)
+    if calls:
+        return round(sum(c.get("cost_usd", 0.0) for c in calls), 6)
+    return run.cost_usd
+
+
+def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
+    runs = [r for r in runs if r.kind == "build"]
+    finished = [r for r in runs if r.status != "running"]
+    reports = [rep for rep in (_report(r) for r in runs) if rep]
+    calls = [c for r in runs for c in _model_calls(r)]
+    by_tier: dict[str, int] = {}
+    for c in calls:
+        by_tier[c.get("tier", "?")] = by_tier.get(c.get("tier", "?"), 0) + 1
+    graded = [res for r in runs for rnd in _rounds(r) for res in rnd["results"]]
+    holds = [rep["holdout_score"] for rep in reports if rep.get("holdout_score") is not None]
+    trains = [rep["train_score"] for rep in reports if rep.get("train_score") is not None]
+    durations = [d for d in (_duration(r) for r in finished) if d is not None]
+    records = logs(runs, builds_dir)
+    sev_counts = {s: sum(1 for x in records if x["severity"] == s) for s in SEVERITIES}
+    status = {s: sum(1 for r in runs if r.status == s) for s in ("passed", "below_target", "failed", "running")}
+    return {
+        "builds": len(runs),
+        "status": status,
+        "pass_rate": status["passed"] / len(finished) if finished else None,
+        "avg_holdout": sum(holds) / len(holds) if holds else None,
+        "avg_train": sum(trains) / len(trains) if trains else None,
+        "model_calls": len(calls),
+        "calls_by_tier": by_tier,
+        "tokens": sum(c.get("prompt_tokens", 0) + c.get("completion_tokens", 0) for c in calls),
+        "prompt_tokens": sum(c.get("prompt_tokens", 0) for c in calls),
+        "completion_tokens": sum(c.get("completion_tokens", 0) for c in calls),
+        "tests_graded": len(graded),
+        "tests_passed": sum(1 for g in graded if g.get("pass")),
+        "total_cost_usd": round(sum(_cost(r) for r in runs), 6),
+        "avg_seconds": sum(durations) / len(durations) if durations else None,
+        "overfit_caught": sum(len(overfit_events(r)) for r in runs),
+        "overfit_builds": sum(1 for r in runs if overfit_events(r)),
+        "alerts": sev_counts["critical"] + sev_counts["high"],
+        "severity": sev_counts,
+        "records": len(records),
+    }
