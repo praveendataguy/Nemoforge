@@ -203,12 +203,24 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .metric small { display: block; color: var(--muted); font-size: 11.5px; }
 .metric b { font: 700 18px "Space Grotesk", system-ui; }
 .st { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; }
-.st.passed { color: var(--accent2); } .st.below_target { color: var(--warn); } .st.failed { color: var(--crit); } .st.running { color: var(--cyan); }
+.st.passed { color: var(--accent2); } .st.below_target { color: var(--warn); } .st.failed { color: var(--crit); } .st.running { color: var(--cyan); } .st.interrupted { color: var(--muted); }
+.rebuild { min-height: 26px; font-size: 12px; padding: 0 10px; margin-left: 8px; }
+/* Nemotron routing panel */
+.route-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+.route-head b { font: 700 32px/1.1 "Space Grotesk", system-ui; color: var(--text); }
+.route-head span { color: var(--text); font-size: 15px; }
+.route-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+.rbar { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+.rbar i { display: block; min-width: 4px; }
+.rbar i.ultra { background: var(--ultra); } .rbar i.super { background: var(--super); } .rbar i.nano { background: var(--nano); }
+.rtable td:nth-child(n+3) { font-family: var(--mono); text-align: right; } .rtable th:nth-child(n+3) { text-align: right; }
+.rtable .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+.rtable .role { color: var(--muted); font-size: 12.5px; }
 .reg { width: 100%; }
 .reg tr.regrow { cursor: pointer; } .reg tr.regrow:hover td { background: rgba(255,255,255,.03); }
 .reg td.num { font-family: var(--mono); text-align: right; } .reg th.num { text-align: right; } .reg th, .reg td.num, .reg td .st { white-space: nowrap; }
 .reg .nm2 { font-weight: 600; } .reg .gl2 { color: var(--muted); font-size: 12px; display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (max-width: 700px) { .reg .hide-sm { display: none; } }
+@media (max-width: 700px) { .reg .hide-sm, .rtable .hide-sm { display: none; } }
 .overlay { background: rgba(2,5,8,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .overlay > .panel { background: rgba(9,14,19,.96); }
 pre { background: rgba(3,6,9,.8); }
@@ -259,6 +271,7 @@ pre { background: rgba(3,6,9,.8); }
         <div class="row"><input id="registry" placeholder="Registry, e.g. cr.eu-north1.nebius.cloud/&lt;registry-id&gt;"><input id="subnet" placeholder="Subnet ID (optional)"><button class="ghost" id="deployBtn">Show deploy commands</button></div>
         <pre id="deployOut" class="hidden"></pre>
       </div>
+      <div class="panel" id="routingPanel"><h3>Nemotron routing</h3><div id="routing"><p class="empty">Loading...</p></div></div>
       <div class="panel" id="registryPanel"><h3>Agent registry</h3><div id="agentRegistry"><p class="empty">Loading agents...</p></div></div>
       <div class="panel" id="kpiPanel"><h3>Dashboard: all builds</h3><div class="kpis" id="kpis"><p class="empty">Loading...</p></div>
         <div class="kpiNote">Computed from the builds stored on disk. Refreshes when a build finishes.</div></div>
@@ -476,7 +489,7 @@ async function loadStats() {
   const s = await (await fetch("/api/stats")).json();
   const tiers = ["ultra", "super", "nano"].filter(t => s.calls_by_tier[t]).map(t => `${t} ${s.calls_by_tier[t]}`).join(" · ");
   const cards = [
-    ["volume", "Total builds", s.builds, `${s.status.passed} passed · ${s.status.below_target} below target · ${s.status.failed} failed`],
+    ["volume", "Total builds", s.builds, `${s.status.passed} passed · ${s.status.below_target} below target · ${s.status.failed} failed` + (s.status.interrupted ? ` · ${s.status.interrupted} interrupted` : "")],
     ["volume", "Model calls", fmtN(s.model_calls), tiers || "no calls yet"],
     ["volume", "Tokens processed", fmtN(s.tokens), `${fmtN(s.prompt_tokens)} in · ${fmtN(s.completion_tokens)} out`],
     ["quality", "Pass rate", orDash(s.pass_rate, pct), "builds that hit the training and held-out target"],
@@ -487,8 +500,23 @@ async function loadStats() {
     ["risk", "Overfitting caught", s.overfit_caught, `rounds where training held or rose but held-out dropped · ${s.overfit_builds} build${s.overfit_builds === 1 ? "" : "s"}`],
     ["risk", "High & critical alerts", s.alerts, `of ${s.records} log records · click to open`, "alerts"],
   ];
+  renderRouting(s.routing);
   $("kpis").innerHTML = cards.map(([g, label, val, sub, act]) => `<div class="kpi ${g}${act ? " click" : ""}"${act ? ` data-act="${act}" tabindex="0"` : ""}><div class="grp">${{volume: "Volume", quality: "Quality", cost: "Cost & speed", risk: "Risk"}[g]}</div><div class="val">${esc(val)}</div><div class="lbl">${esc(label)}</div><div class="sub">${esc(sub)}</div></div>`).join("");
   $("kpis").querySelectorAll("[data-act=alerts]").forEach(c => { c.onclick = () => openLogs(["critical", "high"]); c.onkeydown = e => { if (e.key === "Enter") openLogs(["critical", "high"]); }; });
+}
+
+// ---- Nemotron routing: recorded cost vs the same tokens all priced at Ultra ----
+const ROLE = { ultra: "designs the team, writes tests, optimises", super: "writes and tests tools, grades, heavy agent steps", nano: "fast, everyday agent steps" };
+function renderRouting(r) {
+  const tiers = ["ultra", "super", "nano"].filter(t => r.tiers[t]);
+  if (!tiers.length) { $("routing").innerHTML = `<p class="empty">No model calls yet.</p>`; return; }
+  const calls = tiers.reduce((a, t) => a + r.tiers[t].calls, 0);
+  $("routing").innerHTML = `<div class="route-head"><b>$${r.saved_usd.toFixed(4)}</b><span>saved (${orDash(r.saved_pct, pct)}) vs sending every call to Ultra</span></div>`
+    + `<div class="route-sub">Actual $${r.actual_usd.toFixed(4)} vs $${r.all_ultra_usd.toFixed(4)} for the same tokens at Ultra list prices. Calls by model:</div>`
+    + `<div class="rbar" role="img" aria-label="Calls by model">${tiers.map(t => `<i class="${t}" style="flex:${r.tiers[t].calls}" title="${t}: ${r.tiers[t].calls} calls (${pct(r.tiers[t].calls / calls)})"></i>`).join("")}</div>`
+    + `<table class="rtable"><thead><tr><th>Model</th><th class="hide-sm">Used for</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>`
+    + tiers.map(t => `<tr><td><span class="sw" style="background:var(--${t})"></span>${t}</td><td class="role hide-sm">${ROLE[t]}</td><td>${r.tiers[t].calls} (${pct(r.tiers[t].calls / calls)})</td><td>${fmtN(r.tiers[t].tokens)}</td><td>$${r.tiers[t].cost_usd.toFixed(4)}</td></tr>`).join("")
+    + `</tbody></table>`;
 }
 
 // ---- Observability logs: one record per input, severity set by fixed rules ----
@@ -540,7 +568,8 @@ $("logsView").onclick = e => { if (e.target === $("logsView")) closeLogs(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("logsView").classList.contains("hidden")) closeLogs(); });
 
 // ---- Agent registry: who built what, from the stored builds ----
-const STATUS = { passed: "Passed", below_target: "Below target", failed: "Failed", running: "Building" };
+const STATUS = { passed: "Passed", below_target: "Below target", failed: "Failed", interrupted: "Interrupted", running: "Building" };
+const canRebuild = st => st === "failed" || st === "interrupted";
 const ago = t => { const m = Math.round((Date.now() / 1000 - t) / 60); return m < 60 ? `${Math.max(m, 0)} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
 async function loadAgents() {
   const list = await (await fetch("/api/agents")).json();
@@ -552,7 +581,7 @@ async function loadAgents() {
   const a = list[0];
   const pipe = a.team.length ? a.team.map((n, i) => (i ? `<span class="ar">&rarr;</span>` : "") + `<span class="node">${esc(n.name)}<i class="${n.tier}">${n.tier}</i></span>`).join("") : `<span class="empty">Team not designed yet.</span>`;
   const spot = `<div class="spot"><div><div class="tag">Latest agent · ${ago(a.created)}</div><div class="nm">${esc(a.name)}</div><div class="gl">${esc(a.goal)}</div><div class="pipe">${pipe}</div>`
-    + `<div style="margin-top:12px"><button class="ghost" data-open="${esc(a.build)}">Open this agent</button></div></div>`
+    + `<div style="margin-top:12px"><button class="ghost" data-open="${esc(a.build)}">Open this agent</button>${canRebuild(a.status) ? `<button class="ghost rebuild" data-rebuild="${esc(a.goal)}">Rebuild</button>` : ""}</div></div>`
     + `<div class="metrics"><div class="metric"><small>Status</small><span class="st ${a.status}">${STATUS[a.status] || a.status}</span></div>`
     + `<div class="metric"><small>Shipped version</small><b>${a.version ? "v" + a.version : "–"}</b></div>`
     + `<div class="metric"><small>Held-out score</small><b>${orDash(a.holdout_score, pct)}</b></div>`
@@ -560,8 +589,12 @@ async function loadAgents() {
     + `<div class="metric"><small>Agents · tools</small><b>${a.team.length} · ${a.tools}</b></div>`
     + `<div class="metric"><small>Build cost</small><b>$${a.cost_usd.toFixed(4)}</b></div></div></div>`;
   const table = `<table class="reg"><thead><tr><th>Agent</th><th class="hide-sm">Owner</th><th>Status</th><th class="num">Held-out</th><th class="num hide-sm">Cost</th><th class="hide-sm">Built</th></tr></thead><tbody>`
-    + list.map(x => `<tr class="regrow" data-open="${esc(x.build)}" tabindex="0"><td><span class="nm2">${esc(x.name)}</span><span class="gl2">${esc(x.goal)}</span></td><td class="hide-sm">${esc(who)}</td><td><span class="st ${x.status}">${STATUS[x.status] || x.status}</span></td><td class="num">${orDash(x.holdout_score, pct)}</td><td class="num hide-sm">$${x.cost_usd.toFixed(4)}</td><td class="hide-sm">${ago(x.created)}</td></tr>`).join("") + `</tbody></table>`;
+    + list.map(x => `<tr class="regrow" data-open="${esc(x.build)}" tabindex="0"><td><span class="nm2">${esc(x.name)}</span><span class="gl2">${esc(x.goal)}</span></td><td class="hide-sm">${esc(who)}</td><td><span class="st ${x.status}">${STATUS[x.status] || x.status}</span>${canRebuild(x.status) ? `<button class="ghost rebuild" data-rebuild="${esc(x.goal)}" title="Put this goal back in the goal box">Rebuild</button>` : ""}</td><td class="num">${orDash(x.holdout_score, pct)}</td><td class="num hide-sm">$${x.cost_usd.toFixed(4)}</td><td class="hide-sm">${ago(x.created)}</td></tr>`).join("") + `</tbody></table>`;
   $("agentRegistry").innerHTML = head + spot + table;
+  // Rebuild only refills the goal box: starting a build spends credits, so the user still presses Build it.
+  $("agentRegistry").querySelectorAll("[data-rebuild]").forEach(el => el.onclick = e => {
+    e.stopPropagation(); $("goal").value = el.dataset.rebuild; window.scrollTo({ top: 0, behavior: "smooth" }); $("goal").focus();
+  });
   $("agentRegistry").querySelectorAll("[data-open]").forEach(el => { const go = () => { watch(el.dataset.open); window.scrollTo({ top: $("teamPanel").offsetTop - 90, behavior: "smooth" }); }; el.onclick = go; el.onkeydown = e => { if (e.key === "Enter") go(); }; });
 }
 $("backBtn").onclick = () => {

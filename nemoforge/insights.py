@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from typing import Any, Iterable
 
+from .config import settings
 from .events import Run
 
 SEVERITIES = ["critical", "high", "medium", "low", "info"]
@@ -69,6 +70,8 @@ def _build_record(run: Run) -> dict[str, Any]:
     errors = _by_stage(run, "error")
     if run.status == "running":
         reasons.append(("info", "Build is still running."))
+    elif run.status == "interrupted":
+        reasons.append(("medium", "Build was interrupted: the server stopped before it finished. Rebuild to get a result."))
     elif run.status == "failed" or report is None:
         msg = errors[-1]["message"] if errors else "the build stopped before it finished"
         reasons.append(("critical", f"Build crashed: {msg}"))
@@ -206,7 +209,7 @@ def _cost(run: Run) -> float:
 
 def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
     runs = [r for r in runs if r.kind == "build"]
-    finished = [r for r in runs if r.status != "running"]
+    finished = [r for r in runs if r.status not in ("running", "interrupted")]
     reports = [rep for rep in (_report(r) for r in runs) if rep]
     calls = [c for r in runs for c in _model_calls(r)]
     by_tier: dict[str, int] = {}
@@ -218,7 +221,7 @@ def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
     durations = [d for d in (_duration(r) for r in finished) if d is not None]
     records = logs(runs, builds_dir)
     sev_counts = {s: sum(1 for x in records if x["severity"] == s) for s in SEVERITIES}
-    status = {s: sum(1 for r in runs if r.status == s) for s in ("passed", "below_target", "failed", "running")}
+    status = {s: sum(1 for r in runs if r.status == s) for s in ("passed", "below_target", "failed", "interrupted", "running")}
     return {
         "builds": len(runs),
         "status": status,
@@ -239,6 +242,28 @@ def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
         "alerts": sev_counts["critical"] + sev_counts["high"],
         "severity": sev_counts,
         "records": len(records),
+        "routing": routing(calls),
+    }
+
+
+def routing(calls: list[dict[str, Any]], prices: dict[str, tuple[float, float]] | None = None) -> dict[str, Any]:
+    """What tier routing saved: the recorded cost against the same tokens all sent to Ultra at list price."""
+    prices = prices or settings().prices
+    p_in, p_out = prices["ultra"]
+    tiers: dict[str, dict[str, Any]] = {}
+    for c in calls:
+        t = tiers.setdefault(c.get("tier", "?"), {"calls": 0, "tokens": 0, "cost_usd": 0.0})
+        t["calls"] += 1
+        t["tokens"] += c.get("prompt_tokens", 0) + c.get("completion_tokens", 0)
+        t["cost_usd"] += c.get("cost_usd", 0.0)
+    actual = sum(t["cost_usd"] for t in tiers.values())
+    all_ultra = sum(c.get("prompt_tokens", 0) * p_in + c.get("completion_tokens", 0) * p_out for c in calls) / 1e6
+    return {
+        "tiers": {k: {**v, "cost_usd": round(v["cost_usd"], 6)} for k, v in tiers.items()},
+        "actual_usd": round(actual, 6),
+        "all_ultra_usd": round(all_ultra, 6),
+        "saved_usd": round(max(all_ultra - actual, 0.0), 6),
+        "saved_pct": (all_ultra - actual) / all_ultra if all_ultra else None,
     }
 
 

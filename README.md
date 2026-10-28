@@ -62,6 +62,12 @@ python -m nemoforge serve        # open http://127.0.0.1:8000
 
 The first time the dashboard starts with an empty `builds/` folder, it copies in two recorded real Nemotron runs from `demo/builds/`, so you can explore the dashboard without spending any credit (no API key needed). Set `NF_DEMO_BUILDS=0` to skip this.
 
+### Nemotron routing
+
+NemoForge picks the smallest Nemotron model that can do each job: Ultra designs the agent team and judges hard tests, Super does the main work, and Nano handles fast, everyday calls such as grading. The **Nemotron routing** panel on the home page shows how many calls and tokens went to each tier, and what the same tokens would have cost if every call had gone to Ultra. The numbers come from real token counts in your builds and the list prices in `nemoforge/config.py`.
+
+A build that stopped before it finished (for example because the server was restarted) is now shown as **Interrupted** instead of **Failed**. Interrupted and failed builds get a **Rebuild** button that puts the same goal back in the build box so you can start it again.
+
 ### Dashboard cards and observability logs
 
 The **agent registry** panel, above the cards, shows the owner (set `NF_OWNER`, default Praveen), a spotlight on the latest agent with its team, scores and cost, and a table of every agent built. Click one to open it; **Close build** hides the open build again.
