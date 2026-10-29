@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NemoForge</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='#2af0cf'/%3E%3Cstop offset='1' stop-color='#7a4dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='6' y='10' width='52' height='44' rx='12' fill='#14182c' stroke='url%28#g%29' stroke-width='4'/%3E%3Ccircle cx='23' cy='31' r='6' fill='#2af0cf'/%3E%3Ccircle cx='41' cy='31' r='6' fill='#2af0cf'/%3E%3Crect x='22' y='43' width='20' height='4' rx='2' fill='#ffb02e'/%3E%3Crect x='29' y='2' width='6' height='9' rx='3' fill='#ffb02e'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0d0f0c; --panel: #151813; --panel2: #1b1f18; --line: #2a3026; --text: #e8ebe4; --muted: #9aa393;
@@ -193,6 +194,29 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .kpi:hover { transform: translateY(-2px); }
 .kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
 .kpi.volume { --g: var(--cyan); }
+.mic { width: 44px; min-width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; align-self: center; }
+.tryBar .mic { width: 34px; min-width: 34px; height: 34px; padding: 0; }
+.mic[hidden] { display: none; }
+.mic svg { width: 20px; height: 20px; }
+.tryBar .mic svg { width: 16px; height: 16px; }
+@property --ma { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.mic, html[data-theme] .mic.ghost:not([data-t]) { color: #5cfff0 !important; border: 2px solid transparent !important;
+  background: radial-gradient(circle at 50% 40%, #1d2a5c, #0a0f24 70%) padding-box,
+    conic-gradient(from var(--ma), #00f0ff, #7a4dff, #ff2bd6, #ffb02e, #00f0ff) border-box !important;
+}
+html[data-theme][data-theme][data-theme] .mic.mic.ghost:not([data-t]) { box-shadow: 0 0 14px -2px rgba(0,240,255,.8), 0 0 28px -6px rgba(255,43,214,.7), inset 0 0 10px rgba(0,240,255,.35);
+  animation: micspin 3s linear infinite; }
+.mic svg { filter: drop-shadow(0 0 4px #00f0ff) drop-shadow(0 0 8px rgba(0,240,255,.6)); }
+html[data-theme][data-theme][data-theme] .mic.mic.ghost:not([data-t]):hover { transform: scale(1.08); box-shadow: 0 0 22px 0 rgba(0,240,255,.9), 0 0 40px -4px rgba(255,43,214,.85), inset 0 0 12px rgba(0,240,255,.45); }
+.mic.rec, html[data-theme] .mic.ghost.rec:not([data-t]) { color: #fff !important; border-color: transparent !important;
+  background: radial-gradient(circle at 50% 45%, #ff7a3d, #ff2b6b 45%, #8a0f6b 80%) padding-box,
+    conic-gradient(from var(--ma), #ffe066, #ff2bd6, #ff3b3b, #ffb02e, #ffe066) border-box !important;
+  animation: micspin .8s linear infinite, micpulse 1s ease-out infinite; }
+html[data-theme][data-theme][data-theme] .mic.mic.ghost.rec:not([data-t]) { animation: micspin .8s linear infinite, micpulse 1s ease-out infinite; }
+.mic.rec svg { filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 12px #ffe066); }
+@keyframes micspin { to { --ma: 360deg; } }
+@media (prefers-reduced-motion: reduce) { html[data-theme][data-theme][data-theme] .mic.mic.ghost:not([data-t]) { animation: none; } }
+@keyframes micpulse { 0% { box-shadow: 0 0 0 0 rgba(255,43,107,.8), 0 0 0 0 rgba(255,224,102,.6), 0 0 24px rgba(255,43,214,.9); } 100% { box-shadow: 0 0 0 18px rgba(255,43,107,0), 0 0 0 32px rgba(255,224,102,0), 0 0 24px rgba(255,43,214,.9); } }
 .tryBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 .tryBar button { min-height: 34px; font-size: 13px; padding: 0 14px; }
 .tryBar span { font: 12px var(--mono); color: var(--muted); }
@@ -220,6 +244,16 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .docs ol { padding-left: 18px; } .docs li { margin: 3px 0; } .docs b { color: var(--text); }
 .docs code { font: 12px var(--mono); color: var(--accent); }
 .docs .sev { margin: 0 2px; }
+#thinkStats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 8px 0 12px; }
+#thinkStats b, .reason .facts b { font: 700 20px var(--mono); display: block; }
+#thinkStats span, .reason .facts span { color: var(--muted); font-size: 12.5px; }
+.thought { border-top: 1px dashed var(--line); }
+.thought summary { cursor: pointer; padding: 8px 0; font-size: 13.5px; }
+.thought pre { max-height: 240px; overflow: auto; white-space: pre-wrap; font-size: 12.5px; }
+.reason { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.reason h4 { margin: 0 0 8px; font: 600 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ultra); }
+.reason .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.memNote { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
 .memToggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-left: auto; cursor: pointer; }
 .teamHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .teamHead h3 { margin: 0; }
@@ -665,6 +699,41 @@ html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost) { backgroun
   html[data-theme="robot"]:not([data-theme="dark"]) body::before, html[data-theme="robot"]:not([data-theme="dark"]) body::after, html[data-theme="robot"]:not([data-theme="dark"]) .hero h2::after, html[data-theme="robot"]:not([data-theme="dark"]) .hero::after, html[data-theme="robot"]:not([data-theme="dark"]) .kpi .val, html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost), html[data-theme="robot"]:not([data-theme="dark"]) .panel:hover::after { animation: none; }
   html[data-theme="robot"]:not([data-theme="dark"]) body::after { display: none; }
 }
+/* ---- Style polish: glass header, flowing headline, staggered entrances, neon hovers ---- */
+html[data-theme="robot"]:not([data-theme="dark"]) { --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; scrollbar-color: #2af0cf #1b2350; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::-webkit-scrollbar { width: 10px; height: 10px; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::-webkit-scrollbar-track { background: #161b3a; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #2af0cf, #7a4dff); border-radius: 10px; border: 2px solid #161b3a; }
+html[data-theme="robot"]:not([data-theme="dark"]) header { backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
+html[data-theme="robot"]:not([data-theme="dark"]) header h1::before { animation: blink 5s infinite; }
+@keyframes blink { 0%, 46%, 50%, 100% { transform: scaleY(1); } 48% { transform: scaleY(.15); } }
+html[data-theme="robot"]:not([data-theme="dark"]) header h1 span { background: linear-gradient(90deg, #ffb02e, #ff4f8b, #b06bff, #2af0cf, #ffb02e); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: flow 8s linear infinite; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%2300ffd5' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #f2fbfa 0%, #bff7ec 20%, #3df5d0 40%, #ffc56b 60%, #ff7ab8 80%, #f2fbfa 100%);
+  background-size: 240px 20px, 250% 100%; -webkit-background-clip: padding-box, text; background-clip: padding-box, text; animation: flowh 10s ease-in-out infinite alternate; }
+@keyframes flow { to { background-position: 300% 0; } }
+@keyframes flowh { from { background-position: 0 100%, 0% 0; } to { background-position: 240px 100%, 100% 0; } }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero > * { animation: rise .7s cubic-bezier(.2,.8,.2,1) backwards; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(2) { animation-delay: .08s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(3) { animation-delay: .16s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(4) { animation-delay: .24s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(5) { animation-delay: .32s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(6) { animation-delay: .4s; }
+html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel { animation: rise .6s cubic-bezier(.2,.8,.2,1) backwards; }
+html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(2) { animation-delay: .06s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(3) { animation-delay: .12s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(4) { animation-delay: .18s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(5) { animation-delay: .24s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(n+6) { animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel h3 { letter-spacing: .12em; }
+html[data-theme="robot"]:not([data-theme="dark"]) button.ghost:not([data-t]) { transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease; }
+html[data-theme="robot"]:not([data-theme="dark"]) button.ghost:not([data-t]):hover { transform: translateY(-1px); border-color: #2af0cf; box-shadow: 0 0 0 1px #2af0cf, 0 0 18px -4px rgba(42,240,207,.9); }
+html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost):not(:disabled):hover { filter: brightness(1.08) saturate(1.15); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 4px 0 #00695c, 0 0 34px 0 rgba(0,255,214,.85); }
+html[data-theme="robot"]:not([data-theme="dark"]) .chip { transition: box-shadow .2s ease, transform .2s ease; }
+html[data-theme="robot"]:not([data-theme="dark"]) .chip:hover { transform: translateY(-1px); box-shadow: 0 0 14px -3px rgba(176,107,255,.9); }
+html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea:focus { animation: focusglow 2.4s ease-in-out infinite; }
+@keyframes focusglow { 50% { box-shadow: 0 0 0 2px rgba(42,240,207,.6), 0 0 34px -4px rgba(176,107,255,.9); } }
+html[data-theme="robot"]:not([data-theme="dark"]) tbody tr { transition: background .15s ease; }
+html[data-theme="robot"]:not([data-theme="dark"]) tbody tr:hover { background: linear-gradient(90deg, rgba(42,240,207,.16), rgba(176,107,255,.12) 60%, transparent); }
+html[data-theme="robot"]:not([data-theme="dark"]) .themes button { transition: transform .2s ease; } html[data-theme="robot"]:not([data-theme="dark"]) .themes button:hover { transform: scale(1.18) rotate(8deg); }
+html[data-theme="robot"]:not([data-theme="dark"]) ::selection { background: #b06bff; color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="robot"]:not([data-theme="dark"]) header h1::before, html[data-theme="robot"]:not([data-theme="dark"]) header h1 span, html[data-theme="robot"]:not([data-theme="dark"]) .hero h2, html[data-theme="robot"]:not([data-theme="dark"]) .hero > *, html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel, html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea:focus { animation: none; }
+}
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff9f1c; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
@@ -683,6 +752,7 @@ html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"]
     <p><b>Nemotron Ultra</b> designs the team, <b>Super</b> writes and tests its tools, and a <b>Nano</b> router picks the cheapest model that can handle each request. Every version is scored on tests it has never seen before it ships.</p>
     <div class="goal">
       <textarea id="goal" placeholder="e.g. Read a customer support email, work out what they need, check our refund policy rules and draft a reply."></textarea>
+      <button class="ghost mic" id="goalMic" title="Speak your goal" aria-label="Speak your goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <button id="buildBtn">Build it</button>
     </div>
     <div class="examples" id="examples"></div>
@@ -710,7 +780,8 @@ html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"]
         <details><summary>Smart router</summary><p>Before every agent runs, Nano rates the request from 1 to 5: 1-2 run on Nano, 3-4 on Super, 5 on Ultra. It never drops more than one tier below the Architect's plan. The routing panel shows every decision and the money saved.</p></details>
         <details><summary>Held-out tests and overfitting</summary><p>The held-out score is the honest number. If training rises while held-out falls, NemoForge flags overfitting and ships an earlier, better version.</p></details>
         <details><summary>Observability and severity</summary><p>Every input is a log record: build goals, graded tests and playground runs. <span class="sev critical">critical</span> crashes, <span class="sev high">high</span> weak held-out or big gaps, <span class="sev medium">medium</span> below target or interrupted, <span class="sev low">low</span> notes such as repairs, <span class="sev info">info</span> all good.</p></details>
-        <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team its last 3 runs as context, for example to follow up on open items from the previous meeting.</p></details>
+        <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team the 3 earlier runs most related to the new request, ranked by meaning with a Nebius embedding model, for example to follow up on open items from a related meeting.</p></details>
+        <details><summary>Nemotron reasoning</summary><p>Every call sets Nemotron's reasoning switch per tier: Ultra and Super think step by step, Nano answers directly to stay fast and cheap. The Nemotron reasoning panel in a build shows what Ultra and Super were thinking.</p></details>
         <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>.</p><pre>python -m nemoforge serve
 python -m nemoforge build "goal" --budget 1
 python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
@@ -723,11 +794,12 @@ python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
         <div class="scores"><div class="big" id="trainBig">-<small>training tests</small></div><div class="big" id="holdBig">-<small>held-out tests (never shown to the optimizer)</small></div><svg id="chart" viewBox="0 0 360 120" width="360" height="120" role="img" aria-label="Score by round"></svg></div>
       </div>
       <div class="panel hidden" id="healPanel"><h3>Self-healing</h3><p class="summary">When a build is stuck below target or crashes, Nemotron Ultra reviews every round, finds the root cause and repairs the team. A bonus round then checks the repair on the same tests.</p><div id="heals"></div></div>
+      <div class="panel hidden" id="thinkPanel"><h3>Nemotron reasoning</h3><p class="summary">Ultra and Super think step by step before they answer (reasoning on). Nano answers directly (reasoning off) to stay fast and cheap. Open a step to read what Nemotron was thinking.</p><div id="thinkStats"></div><div id="thoughts"></div></div>
       <div class="panel hidden" id="resultsPanel"><h3>Latest test results</h3><table><thead><tr><th>Result</th><th>Test input</th><th>Grader's reason</th></tr></thead><tbody id="results"></tbody></table></div>
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
       <div class="panel hidden playground" id="tryPanel"><h3>Try the finished agent</h3>
-        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (last 3 runs)</label></div>
+        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><button class="ghost mic" id="tryMic" title="Speak your request" aria-label="Speak your request"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (3 most related runs)</label></div>
         <textarea id="tryInput"></textarea><button id="tryBtn">Run</button>
         <div id="tryOut"></div>
       </div>
@@ -804,9 +876,9 @@ async function loadHistory() {
 function reset() {
   $("teamPanel").classList.remove("hidden");
   rounds = []; for (const k in live) delete live[k];
-  $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = ""; $("heals").innerHTML = ""; healNext = false;
+  $("timeline").innerHTML = ""; $("team").innerHTML = ""; $("results").innerHTML = ""; $("changes").innerHTML = ""; $("tools").innerHTML = ""; $("heals").innerHTML = ""; healNext = false; $("thoughts").innerHTML = ""; thinkN = { on: 0, off: 0, tokens: 0 }; lastStage = "";
   $("summary").textContent = "The Architect is designing...";
-  ["scorePanel", "healPanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
+  ["scorePanel", "healPanel", "thinkPanel", "resultsPanel", "changesPanel", "toolsPanel", "tryPanel", "deployPanel"].forEach(id => $(id).classList.add("hidden"));
   $("tryOut").innerHTML = ""; $("deployOut").classList.add("hidden");
   $("holdBig").querySelector("small").textContent = "held-out tests (never shown to the optimizer)";
 }
@@ -864,7 +936,9 @@ function onEvent(e) {
   if (e.stage === "ping") return;
   if (e.stage === "end") { document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live")); $("buildBtn").disabled = replay; loadHistory(); return; }
   if (e.stage === "model" && d0(e).total_cost_usd !== undefined) liveCost(d0(e));
+  if (e.stage === "model" && d0(e).thinking !== undefined) renderThought(e);
   if (e.stage !== "model") {
+    lastStage = e.stage;
     document.querySelectorAll(".timeline li.live").forEach(li => li.classList.remove("live"));
     const li = document.createElement("li"); li.className = e.stage + " live";
     li.innerHTML = `<span class="stage">${esc(e.stage)}</span>${esc(e.message)}`; $("timeline").append(li);
@@ -888,6 +962,23 @@ function onEvent(e) {
       $("trainBig").firstChild.nodeValue = pct(d.report.train_score); $("holdBig").firstChild.nodeValue = pct(d.report.holdout_score);
       $("holdBig").querySelector("small").textContent = `held-out tests, shipped v${d.report.version} (never shown to the optimizer)`;
     } $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); }
+}
+
+// ---- Nemotron reasoning: which calls thought step by step, and what they were thinking ----
+let thinkN = { on: 0, off: 0, tokens: 0 }, lastStage = "";
+function renderThought(e) {
+  const d = d0(e);
+  if (d.thinking) thinkN.on++; else thinkN.off++;
+  thinkN.tokens += d.thought_tokens || 0;
+  $("thinkPanel").classList.remove("hidden");
+  $("thinkStats").innerHTML = `<div><b>${thinkN.on}</b><span>calls with reasoning on</span></div><div><b>${thinkN.off}</b><span>fast calls, reasoning off</span></div><div><b>${fmtN(thinkN.tokens)}</b><span>reasoning tokens (approx.)</span></div>`;
+  if (!d.thought) return;
+  $("thoughts").insertAdjacentHTML("afterbegin", `<details class="thought ${esc(d.tier)}"><summary><span class="tier ${esc(d.tier)}">${esc(d.tier)}</span> while <b>${esc(lastStage || "starting")}</b> · ~${fmtN(d.thought_tokens || 0)} tokens</summary><pre>${esc(d.thought)}</pre></details>`);
+  // Keep Ultra's design and repair reasoning; trim the oldest routine steps first.
+  while ($("thoughts").children.length > 8) {
+    const items = [...$("thoughts").children];
+    (items.reverse().find(x => !x.classList.contains("ultra")) || items[0]).remove();
+  }
 }
 
 // ---- Self-healing: the Healer's diagnosis, root causes, changes and the bonus round's result ----
@@ -983,6 +1074,24 @@ function tryMeta() {
   $("tryMeta").textContent = n ? `${n.toLocaleString()} chars · about ${Math.max(1, Math.round(words / 140))} min of talk` + (n > 200000 ? " · too long, max 200,000" : "") : "";
 }
 $("tryInput").oninput = tryMeta;
+
+// ---- Voice input: speak a goal or a playground request (the browser's speech recognition) ----
+const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+function voice(btn, target, onText) {
+  if (!Speech) { btn.hidden = true; return; }
+  let rec = null;
+  btn.onclick = () => {
+    if (rec) return rec.stop();
+    rec = new Speech(); rec.lang = navigator.language || "en-US"; rec.interimResults = true; rec.continuous = true;
+    const base = target.value.trim() ? target.value.trim() + " " : "";
+    rec.onresult = e => { target.value = base + [...e.results].map(r => r[0].transcript).join(""); if (onText) onText(); };
+    rec.onerror = e => { if (e.error === "not-allowed") btn.title = "Microphone access is blocked for this page"; };
+    rec.onend = () => { rec = null; btn.classList.remove("rec"); target.focus(); };
+    btn.classList.add("rec"); rec.start();
+  };
+}
+voice($("goalMic"), $("goal"));
+voice($("tryMic"), $("tryInput"), tryMeta);
 $("loadBtn").onclick = () => $("loadFile").click();
 $("loadFile").onchange = async () => {
   const f = $("loadFile").files[0]; if (!f) return;
@@ -997,7 +1106,8 @@ $("tryBtn").onclick = async () => {
   const r = await post(`/api/builds/${current}/invoke`, { input, use_memory: $("useMemory").checked });
   const j = await r.json(); $("tryBtn").disabled = replay; loadMemory(); loadLogsMini();
   if (!r.ok) return $("tryOut").innerHTML = `<pre>${esc(JSON.stringify(j))}</pre>`;
-  $("tryOut").innerHTML = `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${t.route ? routeChip(t.route) : `${esc(t.agent)} · ${t.tier}`} · ${t.ms} ms${t.route && t.route.why ? ` · ${esc(t.route.why)}` : ""} · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
+  const mem = j.memory ? `<p class="memNote">Recalled ${j.memory.runs} earlier run${j.memory.runs === 1 ? "" : "s"} ${j.memory.mode === "semantic" ? "most related to this request, ranked by meaning with a Nebius embedding model" : "(the most recent ones)"}.</p>` : "";
+  $("tryOut").innerHTML = mem + `<pre>${esc(j.output)}</pre>` + j.trace.map(t => `<details><summary>${t.route ? routeChip(t.route) : `${esc(t.agent)} · ${t.tier}`} · ${t.ms} ms${t.route && t.route.why ? ` · ${esc(t.route.why)}` : ""} · ${t.steps.length} tool calls</summary><pre>${esc(t.steps.map(s => `${s.tool}(${JSON.stringify(s.args)}) -> ${JSON.stringify(s.result).slice(0, 400)}`).join("\n") || "no tool calls")}\n\n${esc(t.output)}</pre></details>`).join("");
 };
 
 $("deployBtn").onclick = async () => {
@@ -1026,6 +1136,7 @@ async function loadStats() {
     ["risk", "High & critical alerts", s.alerts, `of ${s.records} log records · click to open`, "alerts"],
   ];
   renderRouting(s.routing);
+  if (s.reasoning) $("routing").insertAdjacentHTML("beforeend", renderReasoning(s.reasoning));
   $("kpis").innerHTML = cards.map(([g, label, val, sub, act]) => `<div class="kpi ${g}${act ? " click" : ""}"${act ? ` data-act="${act}" tabindex="0"` : ""}><div class="grp">${{volume: "Volume", quality: "Quality", cost: "Cost & speed", risk: "Risk"}[g]}</div><div class="val">${esc(val)}</div><div class="lbl">${esc(label)}</div><div class="sub">${esc(sub)}</div></div>`).join("");
   $("kpis").querySelectorAll("[data-act=alerts]").forEach(c => { c.onclick = () => openLogs(["critical", "high"]); c.onkeydown = e => { if (e.key === "Enter") openLogs(["critical", "high"]); }; });
 }
@@ -1042,6 +1153,13 @@ function renderRouting(r) {
     + `<table class="rtable"><thead><tr><th>Model</th><th class="hide-sm">Used for</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>`
     + tiers.map(t => `<tr><td><span class="sw" style="background:var(--${t})"></span>${t}</td><td class="role hide-sm">${ROLE[t]}</td><td>${r.tiers[t].calls} (${pct(r.tiers[t].calls / calls)})</td><td>${fmtN(r.tiers[t].tokens)}</td><td>$${r.tiers[t].cost_usd.toFixed(4)}</td></tr>`).join("")
     + `</tbody></table>` + renderSmart(r.smart);
+}
+function renderReasoning(m) {
+  return `<div class="reason"><h4>Nemotron reasoning & Nebius memory</h4><div class="facts">`
+    + `<div><b style="color:var(--ultra)">${m.on}</b><span>calls with reasoning on (Ultra, Super)</span></div>`
+    + `<div><b style="color:var(--nano)">${m.off}</b><span>fast calls, reasoning off (Nano)</span></div>`
+    + `<div><b>${fmtN(m.thought_tokens)}</b><span>reasoning tokens (approx.)</span></div>`
+    + `<div><b>${m.semantic_recalls}</b><span>memory recalls ranked by Nebius embeddings</span></div></div></div>`;
 }
 // One routing decision: planned tier (struck out when changed) -> chosen tier, plus Nano's difficulty rating.
 function routeChip(d) {

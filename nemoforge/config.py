@@ -38,6 +38,15 @@ class Settings:
     heal_retries: int = field(default_factory=lambda: int(_env("NF_HEAL_RETRIES", "1")))
     # Smart routing: Nano rates each request before every agent runs and picks Nano, Super or Ultra.
     smart_routing: bool = field(default_factory=lambda: _env("NF_SMART_ROUTING", "1") in ("1", "true", "yes"))
+    # Nemotron reasoning per tier: Ultra and Super think step by step before answering, Nano answers directly.
+    thinking: dict[str, bool] = field(
+        default_factory=lambda: {
+            t: _env(f"NF_THINK_{t.upper()}", on) in ("1", "true", "yes") for t, on in (("nano", "0"), ("super", "1"), ("ultra", "1"))
+        }
+    )
+    # Agent memory recalls the most related earlier runs, ranked by a Nebius embedding model.
+    semantic_memory: bool = field(default_factory=lambda: _env("NF_SEMANTIC_MEMORY", "1") in ("1", "true", "yes"))
+    embed_model: str = field(default_factory=lambda: _env("NF_EMBED_MODEL", "Qwen/Qwen3-Embedding-8B"))
     eval_cases: int = field(default_factory=lambda: int(_env("NF_EVAL_CASES", "8")))
     tool_timeout: int = field(default_factory=lambda: int(_env("NF_TOOL_TIMEOUT", "20")))
     max_agent_steps: int = field(default_factory=lambda: int(_env("NF_MAX_AGENT_STEPS", "6")))

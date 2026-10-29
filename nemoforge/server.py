@@ -23,7 +23,7 @@ from . import insights
 from .config import Settings, settings
 from .events import Run, registry
 from .forge import build
-from .llm import LLM, NemotronRouter
+from .llm import LLM, NemotronRouter, embed
 from .runtime import run_system
 from .spec import SystemSpec
 from .tools import _no_net_prefix
@@ -32,6 +32,8 @@ WEB = Path(__file__).resolve().parent.parent / "web"
 
 # Swappable so tests can run the app without network access.
 llm_factory: Callable[[Run | None, Settings], LLM] = lambda run, cfg: NemotronRouter(run, cfg)
+# Ranks agent memory by meaning; tests swap it for a fake.
+embedder: Callable[[Settings, list[str]], list[list[float]]] = embed
 
 DEMO_BUILDS = WEB.parent / "demo" / "builds"
 
@@ -186,14 +188,19 @@ def invoke(run_id: str, req: InvokeRequest, x_access_code: str | None = Header(d
     request = req.input
     run = registry.runs.get(run_id)
     if req.use_memory and run is not None:
-        mem = insights.memory(run, cfg.builds_dir)
-        context = insights.memory_context(mem)
+        mem = insights.memory(run, cfg.builds_dir, recent=30)
+        embed_fn = (lambda texts: embedder(cfg, texts)) if cfg.semantic_memory else None
+        picked, mode = insights.recall(mem["runs"], req.input, embed_fn)
+        context = insights.memory_context({"runs": picked})
         if context:
             request = f"{context}\n\n# New request\n{req.input}"
-            record["memory"] = min(len(mem["runs"]), 3)
+            record["memory"] = len(picked)
+            record["memory_mode"] = mode
     try:
         out = run_system(llm_factory(None, cfg), spec, request, cfg)
         record |= {"output": out.get("output", ""), "agents": len(out.get("trace", [])), "routes": [t["route"] for t in out.get("trace", []) if t.get("route")]}
+        if "memory" in record:
+            out = out | {"memory": {"runs": record["memory"], "mode": record["memory_mode"], "recalled": [r.get("input", "")[:80] for r in picked]}}
         return out
     except Exception as err:
         record["error"] = f"{type(err).__name__}: {err}"

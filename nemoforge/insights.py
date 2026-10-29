@@ -232,6 +232,28 @@ def memory(run: Run, builds_dir: Path, recent: int = 5) -> dict[str, Any]:
     return {"lessons": lessons, "runs": runs[-recent:][::-1], "total_runs": len(runs)}
 
 
+def recall(runs: list[dict[str, Any]], request: str, embed_fn: Any = None, n: int = 3) -> tuple[list[dict[str, Any]], str]:
+    """The earlier runs to give the agent: the n most related to the new request when an embedding
+    model is available, otherwise the n most recent. Keeps newest-first order."""
+    if not embed_fn or len(runs) <= n:
+        return runs[:n], "recent"
+    try:
+        vecs = embed_fn([request] + [r["input"] for r in runs])
+    except Exception:
+        return runs[:n], "recent"
+    q = vecs[0]
+    scores = [_cosine(q, v) for v in vecs[1:]]
+    best = sorted(sorted(range(len(runs)), key=lambda i: -scores[i])[:n])
+    return [runs[i] | {"score": round(scores[i], 3)} for i in best], "semantic"
+
+
+def _cosine(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = sum(x * x for x in a) ** 0.5
+    nb = sum(y * y for y in b) ** 0.5
+    return dot / (na * nb) if na and nb else 0.0
+
+
 def memory_context(mem: dict[str, Any], n: int = 3) -> str:
     """Earlier runs written as context for the next run (oldest first)."""
     if not mem["runs"]:
@@ -306,6 +328,27 @@ def stats(runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
         "severity": sev_counts,
         "records": len(records),
         "routing": routing(calls) | {"smart": smart_routes(runs, builds_dir)},
+        "reasoning": reasoning(calls, runs, builds_dir),
+    }
+
+
+def reasoning(calls: list[dict[str, Any]], runs: Iterable[Run], builds_dir: Path) -> dict[str, Any]:
+    """How the build calls used Nemotron's reasoning switch, and how often memory was recalled by meaning."""
+    recalls = 0
+    for run in runs:
+        path = invocations_path(builds_dir, run.id)
+        if path.exists():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                try:
+                    recalls += json.loads(line).get("memory_mode") == "semantic"
+                except (ValueError, AttributeError):
+                    continue
+    known = [c for c in calls if "thinking" in c]
+    return {
+        "on": sum(1 for c in known if c["thinking"]),
+        "off": sum(1 for c in known if not c["thinking"]),
+        "thought_tokens": sum(c.get("thought_tokens", 0) for c in known),
+        "semantic_recalls": recalls,
     }
 
 
