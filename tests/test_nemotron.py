@@ -94,3 +94,18 @@ def test_invoke_recalls_related_runs_with_embeddings(tmp_path, monkeypatch):
     last = json.loads((tmp_path / run["id"] / "invocations.jsonl").read_text().splitlines()[-1])
     assert last["memory_mode"] == "semantic"
     assert client.get("/api/stats").json()["reasoning"]["semantic_recalls"] == 1
+
+
+def test_dotenv_loads_keys_without_overriding_real_env(tmp_path, monkeypatch):
+    from nemoforge import config
+
+    (tmp_path / ".env").write_text('# keys\nexport NF_T_A="from file"\nNF_T_B=file\n\nNF_T_C = \'quoted\'\n', encoding="utf-8")
+    monkeypatch.setenv("NF_T_B", "real")
+    for k in ("NF_T_A", "NF_T_C"):
+        monkeypatch.delenv(k, raising=False)
+    config._load_dotenv(tmp_path / ".env")
+    import os
+
+    assert (os.environ["NF_T_A"], os.environ["NF_T_B"], os.environ["NF_T_C"]) == ("from file", "real", "quoted")
+    for k in ("NF_T_A", "NF_T_C"):
+        monkeypatch.delenv(k)
