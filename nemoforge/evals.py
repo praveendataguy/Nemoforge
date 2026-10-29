@@ -20,6 +20,9 @@ strict grader can decide pass/fail. Use "must_include" only for exact strings th
 correct answer is certain to contain (often leave it empty). Never put the wording of a
 refusal or any phrase the system could not know in advance in "must_include"; describe it
 in "criteria" instead. Tag each case with "kind": "typical", "edge" or "refuse".
+Criteria must follow from the goal and the input alone: never require a business rule, format
+detail or policy the goal does not state, and when an input is ambiguous accept any reasonable
+reading. Only write a "refuse" case when the goal clearly implies something to refuse.
 
 JSON shape: {{"cases": [{{"id": "c1", "kind": "typical", "input": "...", "criteria": "...", "must_include": [], "must_not_include": []}}]}}"""
 
@@ -28,6 +31,13 @@ Judge only against the criteria and the request; ignore style unless the criteri
 Hallucinated facts, ignored instructions or missing required parts are failures.
 
 JSON shape: {"pass": true|false, "score": 0.0-1.0, "reason": "<one or two sentences>"}"""
+
+
+APPEAL = """
+
+A first grader failed this answer, saying: {reason}
+Check that claim against the criteria yourself. Fail it only if the answer really misses a stated
+criterion; pass it if the first grader asked for something the criteria do not require."""
 
 
 def design_cases(llm: LLM, spec: SystemSpec, n: int) -> list[EvalCase]:
@@ -75,11 +85,16 @@ def grade(llm: LLM, case: EvalCase, answer: str) -> dict[str, Any]:
         return {"pass": False, "score": 0.0, "reason": "; ".join(why), "by": "rule"}
     user = f"# Request\n{case.input}\n\n# Criteria\n{case.criteria}\n\n# Answer\n{answer[:8000]}"
     verdict = chat_json(llm, "super", JUDGE, user, max_tokens=800)
+    by = "judge"
+    if not verdict.get("pass"):
+        # Second opinion: Ultra re-grades every failure, so one harsh Super verdict can't sink a good answer.
+        verdict = chat_json(llm, "ultra", JUDGE + APPEAL.format(reason=verdict.get("reason", "")), user, max_tokens=800)
+        by = "judge+ultra"
     return {
         "pass": bool(verdict.get("pass")),
         "score": float(verdict.get("score", 1.0 if verdict.get("pass") else 0.0)),
         "reason": str(verdict.get("reason", "")),
-        "by": "judge",
+        "by": by,
     }
 
 

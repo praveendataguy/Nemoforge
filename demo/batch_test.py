@@ -44,6 +44,9 @@ def main() -> int:
     args = p.parse_args()
 
     base = settings()
+    if not base.nebius_api_key:
+        print("NEBIUS_API_KEY is not set. Add NEBIUS_API_KEY=... to .env in this folder, or set it in this terminal.")
+        return 1
     goals = [g for g in GOALS if not args.only or g[0] == args.only]
     spent, rows = 0.0, []
     for i, (level, goal) in enumerate(goals):
@@ -61,6 +64,7 @@ def main() -> int:
             report = build(NemotronRouter(run, cfg), goal, run, cfg)
         except Exception as e:  # keep going, one broken build shouldn't stop the batch
             report = {"error": f"{type(e).__name__}: {e}"}
+            run.status = "error"
         cost = float(report.get("cost_usd") or 0)
         spent += cost
         rows.append({"level": level, "goal": goal, "status": run.status, "name": report.get("name", ""),

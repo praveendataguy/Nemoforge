@@ -99,13 +99,44 @@ def test_invoke_recalls_related_runs_with_embeddings(tmp_path, monkeypatch):
 def test_dotenv_loads_keys_without_overriding_real_env(tmp_path, monkeypatch):
     from nemoforge import config
 
-    (tmp_path / ".env").write_text('# keys\nexport NF_T_A="from file"\nNF_T_B=file\n\nNF_T_C = \'quoted\'\n', encoding="utf-8")
+    (tmp_path / ".env").write_text('# keys\nexport NF_T_A="from file"\nNF_T_B=file\n\nNF_T_C = \'quoted\'\n$env:NF_T_D=\"ps\"\n', encoding="utf-8")
     monkeypatch.setenv("NF_T_B", "real")
-    for k in ("NF_T_A", "NF_T_C"):
+    for k in ("NF_T_A", "NF_T_C", "NF_T_D"):
         monkeypatch.delenv(k, raising=False)
     config._load_dotenv(tmp_path / ".env")
     import os
 
-    assert (os.environ["NF_T_A"], os.environ["NF_T_B"], os.environ["NF_T_C"]) == ("from file", "real", "quoted")
-    for k in ("NF_T_A", "NF_T_C"):
+    assert (os.environ["NF_T_A"], os.environ["NF_T_B"], os.environ["NF_T_C"], os.environ["NF_T_D"]) == ("from file", "real", "quoted", "ps")
+    for k in ("NF_T_A", "NF_T_C", "NF_T_D"):
         monkeypatch.delenv(k)
+
+
+def test_dotenv_reads_utf16_written_by_powershell(tmp_path, monkeypatch):
+    import os
+
+    from nemoforge import config
+
+    (tmp_path / ".env").write_text("NF_T_U=from utf16\n", encoding="utf-16")
+    monkeypatch.delenv("NF_T_U", raising=False)
+    config._load_dotenv(tmp_path / ".env")
+    assert os.environ["NF_T_U"] == "from utf16"
+    monkeypatch.delenv("NF_T_U")
+
+
+def test_ultra_second_opinion_on_failed_grade():
+    from nemoforge import evals
+    from nemoforge.spec import EvalCase
+
+    class Judges:
+        def __init__(self):
+            self.tiers = []
+
+        def chat(self, tier, system, user, *, max_tokens=4096):
+            self.tiers.append(tier)
+            ok = tier == "ultra" and "A first grader failed this answer" in system
+            return json.dumps({"pass": ok, "score": 1.0 if ok else 0.0, "reason": "needs a header" if not ok else "meets criteria"})
+
+    llm = Judges()
+    case = EvalCase(id="c1", kind="typical", input="a@b.com hi", criteria="lists a@b.com")
+    out = evals.grade(llm, case, "a@b.com")
+    assert out["pass"] and out["by"] == "judge+ultra" and llm.tiers == ["super", "ultra"]
