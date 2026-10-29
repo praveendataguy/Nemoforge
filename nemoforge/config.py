@@ -6,6 +6,28 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
+def _load_dotenv(path: Path = Path(".env")) -> None:
+    """Read KEY=VALUE lines from .env so keys work in any new terminal. Real environment variables win."""
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if line.startswith("export "):
+            line = line[7:].lstrip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = (part.strip() for part in line.split("=", 1))
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+            value = value[1:-1]
+        if key and not os.environ.get(key):
+            os.environ[key] = value
+
+
+_load_dotenv()
+
+
 def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default).strip()
 
@@ -30,8 +52,8 @@ class Settings:
     nebius_base_url: str = field(default_factory=lambda: _env("NEBIUS_BASE_URL", "https://api.tokenfactory.nebius.com/v1"))
     tavily_api_key: str = field(default_factory=lambda: _env("TAVILY_API_KEY"))
     builds_dir: Path = field(default_factory=lambda: Path(_env("NF_BUILDS_DIR", "builds")))
-    # Optimise until this share of eval cases pass, or until max_iterations rounds.
-    pass_threshold: float = field(default_factory=lambda: float(_env("NF_PASS_THRESHOLD", "0.9")))
+    # Optimise until this share of eval cases pass, or until max_iterations rounds. 0.85 allows one miss in 8.
+    pass_threshold: float = field(default_factory=lambda: float(_env("NF_PASS_THRESHOLD", "0.85")))
     max_iterations: int = field(default_factory=lambda: int(_env("NF_MAX_ITERATIONS", "4")))
     # Self-healing: bonus Healer rounds when a build is stuck below target, and rebuilds after a crash.
     heal_rounds: int = field(default_factory=lambda: int(_env("NF_HEAL_ROUNDS", "1")))
