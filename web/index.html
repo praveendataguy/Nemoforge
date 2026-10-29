@@ -194,6 +194,13 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .kpi:hover { transform: translateY(-2px); }
 .kpi .val { font: 700 30px/1.15 "Space Grotesk", system-ui; letter-spacing: -.01em; }
 .kpi.volume { --g: var(--cyan); }
+.mic { width: 44px; min-width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; align-self: center; }
+.tryBar .mic { width: 34px; min-width: 34px; height: 34px; padding: 0; }
+.mic[hidden] { display: none; }
+.mic svg { width: 20px; height: 20px; }
+.tryBar .mic svg { width: 16px; height: 16px; }
+.mic.rec { color: #fff !important; background: #ff3b6b !important; border-color: #ff3b6b !important; animation: micpulse 1.2s infinite; }
+@keyframes micpulse { 0% { box-shadow: 0 0 0 0 rgba(255,59,107,.7); } 100% { box-shadow: 0 0 0 16px rgba(255,59,107,0); } }
 .tryBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 .tryBar button { min-height: 34px; font-size: 13px; padding: 0 14px; }
 .tryBar span { font: 12px var(--mono); color: var(--muted); }
@@ -729,6 +736,7 @@ html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"]
     <p><b>Nemotron Ultra</b> designs the team, <b>Super</b> writes and tests its tools, and a <b>Nano</b> router picks the cheapest model that can handle each request. Every version is scored on tests it has never seen before it ships.</p>
     <div class="goal">
       <textarea id="goal" placeholder="e.g. Read a customer support email, work out what they need, check our refund policy rules and draft a reply."></textarea>
+      <button class="ghost mic" id="goalMic" title="Speak your goal" aria-label="Speak your goal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <button id="buildBtn">Build it</button>
     </div>
     <div class="examples" id="examples"></div>
@@ -775,7 +783,7 @@ python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
       <div class="panel hidden" id="changesPanel"><h3>What the optimizer changed</h3><div id="changes"></div></div>
       <div class="panel hidden" id="toolsPanel"><h3>Tools written by Nemotron Super</h3><div id="tools"></div></div>
       <div class="panel hidden playground" id="tryPanel"><h3>Try the finished agent</h3>
-        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (3 most related runs)</label></div>
+        <div class="tryBar"><button class="ghost" id="loadBtn">Load transcript</button><button class="ghost mic" id="tryMic" title="Speak your request" aria-label="Speak your request"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><input type="file" id="loadFile" accept=".vtt,.txt,.md,.srt" class="hidden"><span id="tryMeta"></span><label class="memToggle"><input type="checkbox" id="useMemory"> Use memory (3 most related runs)</label></div>
         <textarea id="tryInput"></textarea><button id="tryBtn">Run</button>
         <div id="tryOut"></div>
       </div>
@@ -1050,6 +1058,24 @@ function tryMeta() {
   $("tryMeta").textContent = n ? `${n.toLocaleString()} chars · about ${Math.max(1, Math.round(words / 140))} min of talk` + (n > 200000 ? " · too long, max 200,000" : "") : "";
 }
 $("tryInput").oninput = tryMeta;
+
+// ---- Voice input: speak a goal or a playground request (the browser's speech recognition) ----
+const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+function voice(btn, target, onText) {
+  if (!Speech) { btn.hidden = true; return; }
+  let rec = null;
+  btn.onclick = () => {
+    if (rec) return rec.stop();
+    rec = new Speech(); rec.lang = navigator.language || "en-US"; rec.interimResults = true; rec.continuous = true;
+    const base = target.value.trim() ? target.value.trim() + " " : "";
+    rec.onresult = e => { target.value = base + [...e.results].map(r => r[0].transcript).join(""); if (onText) onText(); };
+    rec.onerror = e => { if (e.error === "not-allowed") btn.title = "Microphone access is blocked for this page"; };
+    rec.onend = () => { rec = null; btn.classList.remove("rec"); target.focus(); };
+    btn.classList.add("rec"); rec.start();
+  };
+}
+voice($("goalMic"), $("goal"));
+voice($("tryMic"), $("tryInput"), tryMeta);
 $("loadBtn").onclick = () => $("loadFile").click();
 $("loadFile").onchange = async () => {
   const f = $("loadFile").files[0]; if (!f) return;
