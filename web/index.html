@@ -100,6 +100,13 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); bord
 .row { display: flex; gap: 10px; flex-wrap: wrap; }
 .row input, .playground textarea { flex: 1 1 220px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; }
 .playground textarea { width: 100%; min-height: 80px; margin-bottom: 10px; }
+/* Auto-growing inputs: they grow with the text, then scroll past a cap */
+#goal, #tryInput { resize: none; overflow-y: hidden; transition: height .12s ease; }
+#goal { max-height: 45vh; }
+.goal { align-items: flex-end; }
+.goal > #buildBtn { height: 68px; }
+.goal > .mic { align-self: flex-end; margin-bottom: 12px; }
+#tryInput { max-height: 60vh; }
 .hidden { display: none !important; }
 .opts { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; color: var(--muted); font-size: 13.5px; align-items: center; }
 .opts input[type=number] { width: 70px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; margin-left: 4px; }
@@ -849,7 +856,7 @@ async function post(url, body) {
   return r;
 }
 
-EXAMPLES.forEach(t => { const b = document.createElement("button"); b.className = "ghost"; b.textContent = t.split(",")[0].slice(0, 48) + "..."; b.title = t; b.onclick = () => $("goal").value = t; $("examples").append(b); });
+EXAMPLES.forEach(t => { const b = document.createElement("button"); b.className = "ghost"; b.textContent = t.split(",")[0].slice(0, 48) + "..."; b.title = t; b.onclick = () => { $("goal").value = t; grow($("goal")); }; $("examples").append(b); });
 
 async function loadConfig() {
   const c = await (await fetch("/api/config")).json();
@@ -961,7 +968,7 @@ function onEvent(e) {
     if (d.report.train_score !== undefined) {  // the shipped version is the best round, not necessarily the last
       $("trainBig").firstChild.nodeValue = pct(d.report.train_score); $("holdBig").firstChild.nodeValue = pct(d.report.holdout_score);
       $("holdBig").querySelector("small").textContent = `held-out tests, shipped v${d.report.version} (never shown to the optimizer)`;
-    } $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); }
+    } $("tryPanel").classList.remove("hidden"); $("deployPanel").classList.remove("hidden"); grow($("tryInput")); }
 }
 
 // ---- Nemotron reasoning: which calls thought step by step, and what they were thinking ----
@@ -1069,7 +1076,16 @@ function vttToText(raw) {
   }
   return out.map(x => (x.who ? x.who + ": " : "") + x.text).join("\n");
 }
+// Grow a textarea to fit its text, like a chat input; past its max-height it scrolls.
+function grow(el) {
+  if (!el.offsetParent) { el.style.height = ""; return; }  // hidden: measure again when shown
+  el.style.height = "auto";
+  const max = parseFloat(getComputedStyle(el).maxHeight) || Infinity;
+  el.style.height = Math.min(el.scrollHeight + 2, max) + "px";
+  el.style.overflowY = el.scrollHeight + 2 > max ? "auto" : "hidden";
+}
 function tryMeta() {
+  grow($("tryInput"));
   const n = $("tryInput").value.length, words = $("tryInput").value.split(/\s+/).filter(Boolean).length;
   $("tryMeta").textContent = n ? `${n.toLocaleString()} chars · about ${Math.max(1, Math.round(words / 140))} min of talk` + (n > 200000 ? " · too long, max 200,000" : "") : "";
 }
@@ -1090,7 +1106,9 @@ function voice(btn, target, onText) {
     btn.classList.add("rec"); rec.start();
   };
 }
-voice($("goalMic"), $("goal"));
+voice($("goalMic"), $("goal"), () => grow($("goal")));
+$("goal").addEventListener("input", () => grow($("goal")));
+addEventListener("resize", () => { grow($("goal")); grow($("tryInput")); });
 voice($("tryMic"), $("tryInput"), tryMeta);
 $("loadBtn").onclick = () => $("loadFile").click();
 $("loadFile").onchange = async () => {
@@ -1263,7 +1281,7 @@ async function loadAgents() {
   $("agentRegistry").innerHTML = head + spot + table;
   // Rebuild only refills the goal box: starting a build spends credits, so the user still presses Build it.
   $("agentRegistry").querySelectorAll("[data-rebuild]").forEach(el => el.onclick = e => {
-    e.stopPropagation(); $("goal").value = el.dataset.rebuild; window.scrollTo({ top: 0, behavior: "smooth" }); $("goal").focus();
+    e.stopPropagation(); $("goal").value = el.dataset.rebuild; grow($("goal")); window.scrollTo({ top: 0, behavior: "smooth" }); $("goal").focus();
   });
   $("agentRegistry").querySelectorAll("[data-open]").forEach(el => { const go = () => { watch(el.dataset.open); window.scrollTo({ top: $("teamPanel").offsetTop - 90, behavior: "smooth" }); }; el.onclick = go; el.onkeydown = e => { if (e.key === "Enter") go(); }; });
 }
