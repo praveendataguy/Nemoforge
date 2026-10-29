@@ -758,6 +758,61 @@ html[data-theme="robot"]:not([data-theme="dark"])::after { content: ""; position
     conic-gradient(from 200deg at 50% 120%, transparent 0deg, rgba(0,229,195,.12) 12deg, transparent 24deg, rgba(118,185,0,.10) 40deg, transparent 52deg, rgba(176,107,255,.10) 70deg, transparent 84deg); }
 @media (max-width: 900px) { html[data-theme="robot"]:not([data-theme="dark"])::after { opacity: .18; background-size: 80vw auto, auto 40vh, auto, auto; } }
 @media (prefers-reduced-motion: reduce) { html[data-theme="robot"]:not([data-theme="dark"])::before { animation: none; } }
+/* ---- GeForce palette: Robot theme in vibrant GPU greens, lime, cyan and electric yellow ---- */
+.themes button[data-t="geforce"] { background: conic-gradient(from 30deg, #b6ff00, #76b900, #00ffa3, #00e5ff, #0b1f12, #b6ff00); }
+html[data-palette="geforce"][data-theme="robot"] .themes button[data-t="geforce"].on { border-color: #b6ff00; }
+html[data-palette="geforce"][data-theme="robot"] .themes button[data-t="robot"].on { border-color: transparent; }
+html[data-palette="geforce"][data-theme="robot"] body {
+  background:
+    linear-gradient(rgba(182,255,0,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(90deg, rgba(182,255,0,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(rgba(0,255,163,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    linear-gradient(90deg, rgba(0,255,163,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    radial-gradient(900px 600px at 8% -5%, rgba(182,255,0,.30), transparent 60%),
+    radial-gradient(900px 650px at 100% 30%, rgba(0,229,255,.22), transparent 60%),
+    radial-gradient(800px 600px at 60% 110%, rgba(0,255,163,.25), transparent 60%),
+    radial-gradient(600px 400px at 0% 85%, rgba(255,43,214,.14), transparent 60%),
+    linear-gradient(160deg, #0a1a06, #0b2010 40%, #062218 75%, #06191f);
+  background-attachment: fixed; }
+html[data-palette="geforce"][data-theme="robot"] header { border-bottom-color: #b6ff00; background:
+    repeating-linear-gradient(90deg, rgba(182,255,0,.75) 0 1px, transparent 1px 50px) left bottom / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(182,255,0,.4) 0 1px, transparent 1px 10px) left bottom / 100% 5px no-repeat,
+    linear-gradient(90deg, rgba(8,24,8,.94), rgba(10,34,20,.94) 50%, rgba(6,28,32,.94)); }
+@keyframes zapg { 0%, 100% { box-shadow: 0 1px 6px rgba(182,255,0,.4); } 50% { box-shadow: 0 1px 18px rgba(182,255,0,.95), 0 6px 34px -10px rgba(0,229,255,.6); } }
+html[data-palette="geforce"][data-theme="robot"] header { animation: zapg 3s ease-in-out infinite; }
+html[data-palette="geforce"][data-theme="robot"] header h1 span { background: linear-gradient(90deg, #b6ff00, #76b900, #00ffa3, #00e5ff, #b6ff00); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+html[data-palette="geforce"][data-theme="robot"] .eyebrow { color: #3e7a00; border-color: #b6ff00; }
+html[data-palette="geforce"][data-theme="robot"] .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%23b6ff00' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #ffffff 0%, #e6ff9a 20%, #b6ff00 40%, #00ffa3 60%, #00e5ff 80%, #ffffff 100%);
+  background-size: 240px 20px, 250% 100%; -webkit-background-clip: padding-box, text; background-clip: padding-box, text; }
+html[data-palette="geforce"][data-theme="robot"] .hero h2::after { color: #b6ff00; -webkit-text-fill-color: #b6ff00; }
+html[data-palette="geforce"][data-theme="robot"] .hero p b { color: #c8ff3d; }
+html[data-palette="geforce"][data-theme="robot"] button:not(.ghost) { background: linear-gradient(135deg, #d4ff4d, #b6ff00 35%, #76b900 75%, #4a8a00); background-size: 200% 100%; color: #0a1a00; border: 1px solid #4a8a00; text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #3e7000, 0 0 30px -2px rgba(182,255,0,.85); }
+html[data-palette="geforce"][data-theme="robot"] button:not(.ghost):not(:disabled):hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #3e7000, 0 0 42px 2px rgba(182,255,0,.95); }
+html[data-palette="geforce"][data-theme="robot"] .panel {
+  background-image:
+    linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00), linear-gradient(#b6ff00, #b6ff00),
+    linear-gradient(rgba(30,80,0,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,0,.06) 1px, transparent 1px),
+    linear-gradient(115deg, rgba(236,255,200,.9), rgba(204,255,232,.9) 22%, rgba(212,247,255,.9) 45%, rgba(255,252,204,.9) 68%, rgba(226,255,214,.9) 86%, rgba(236,255,200,.9));
+  box-shadow: 0 0 0 1px rgba(182,255,0,.55), 0 0 28px -6px rgba(182,255,0,.6), 0 18px 34px -18px rgba(0,0,0,.85); }
+html[data-palette="geforce"][data-theme="robot"] .panel:not(.overlay > .panel):hover { box-shadow: 0 0 0 1px rgba(182,255,0,.9), 0 0 42px -4px rgba(182,255,0,.8), 0 22px 40px -20px rgba(0,0,0,.9); }
+html[data-palette="geforce"][data-theme="robot"] .panel::before { background: linear-gradient(90deg, transparent, #b6ff00 20%, #00e5ff 50%, #b6ff00 80%, transparent); background-size: 200% 100%; }
+html[data-palette="geforce"][data-theme="robot"] .panel > h3::after, html[data-palette="geforce"][data-theme="robot"] .panel > .teamHead h3::after { color: #2f5e00; border-color: #9fdc3a; background: #efffd6; }
+html[data-palette="geforce"][data-theme="robot"] button.ghost:not([data-t]), html[data-palette="geforce"][data-theme="robot"] .chip, html[data-palette="geforce"][data-theme="robot"] .eyebrow { background: linear-gradient(120deg, #efffd6, #dcfff0 55%, #dff8ff); border-color: #9fdc3a; }
+html[data-palette="geforce"][data-theme="robot"] button.ghost:not([data-t]):hover { border-color: #b6ff00; box-shadow: 0 0 0 1px #b6ff00, 0 0 18px -4px rgba(182,255,0,.95); }
+html[data-palette="geforce"][data-theme="robot"] .goal textarea, html[data-palette="geforce"][data-theme="robot"] .playground textarea, html[data-palette="geforce"][data-theme="robot"] .row input, html[data-palette="geforce"][data-theme="robot"] .opts input[type=number] { background: linear-gradient(100deg, #f6ffe6, #ecfff6 50%, #effbff); border-color: #9fdc3a; }
+html[data-palette="geforce"][data-theme="robot"] .goal textarea { box-shadow: 0 0 0 1px rgba(182,255,0,.45), 0 0 24px -8px rgba(182,255,0,.8); }
+html[data-palette="geforce"][data-theme="robot"] .kpi.volume { --g: #b6ff00; --g2: #3e7000; --gt: #e2ff8a; }
+html[data-palette="geforce"][data-theme="robot"] .kpi.quality { --g: #00e5ff; --g2: #005a6e; --gt: #a8f6ff; }
+html[data-palette="geforce"][data-theme="robot"] .kpi.cost { --g: #ffd400; --g2: #7a5a00; --gt: #fff09a; }
+html[data-palette="geforce"][data-theme="robot"] .kpi.risk { --g: #ff3d7f; --g2: #7a0f3a; --gt: #ffb3cd; }
+html[data-palette="geforce"][data-theme="robot"] .route-head b { color: #3e7a00; }
+html[data-palette="geforce"][data-theme="robot"] ::selection { background: #b6ff00; color: #0a1a00; }
+html[data-palette="geforce"][data-theme="robot"] { scrollbar-color: #b6ff00 #0b2010; }
+html[data-palette="geforce"][data-theme="robot"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b6ff00, #00e5ff); border-color: #0b2010; }
+html[data-palette="geforce"][data-theme="robot"] ::-webkit-scrollbar-track { background: #0b2010; }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff9f1c; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
@@ -766,7 +821,7 @@ html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"]
 <header>
   <h1>Nemo<span>Forge</span></h1>
   <button class="ghost logsBtn" id="logsBtn">Observability logs</button>
-  <div class="themes" id="themes" role="group" aria-label="Colour theme"><button class="ghost" data-t="robot" title="Robot" aria-label="Robot theme"></button><button class="ghost" data-t="aurora" title="Aurora" aria-label="Aurora theme"></button><button class="ghost" data-t="sunset" title="Sunset" aria-label="Sunset theme"></button><button class="ghost" data-t="ocean" title="Ocean" aria-label="Ocean theme"></button><button class="ghost" data-t="dark" title="Dark" aria-label="Dark theme"></button></div>
+  <div class="themes" id="themes" role="group" aria-label="Colour theme"><button class="ghost" data-t="robot" title="Robot" aria-label="Robot theme"></button><button class="ghost" data-t="geforce" title="GeForce green" aria-label="GeForce green theme"></button><button class="ghost" data-t="aurora" title="Aurora" aria-label="Aurora theme"></button><button class="ghost" data-t="sunset" title="Sunset" aria-label="Sunset theme"></button><button class="ghost" data-t="ocean" title="Ocean" aria-label="Ocean theme"></button><button class="ghost" data-t="dark" title="Dark" aria-label="Dark theme"></button></div>
   <div class="chips" id="chips"></div>
 </header>
 <main>
@@ -1259,15 +1314,17 @@ function showLog(id) {
 }
 $("logsBtn").onclick = () => openLogs();
 // ---- Colour theme picker (remembered per browser) ----
+// "geforce" is the Robot theme with a vibrant GPU-green palette on top.
 function setTheme(t) {
-  document.documentElement.dataset.theme = t;
+  document.documentElement.dataset.theme = t === "geforce" ? "robot" : t;
+  if (t === "geforce") document.documentElement.dataset.palette = "geforce"; else delete document.documentElement.dataset.palette;
   $("lightTheme").disabled = t === "dark";
   $("themes").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   try { localStorage.setItem("nf-theme", t); } catch (e) {}
 }
 $("themes").querySelectorAll("button").forEach(b => b.onclick = () => setTheme(b.dataset.t));
 let savedTheme = "robot"; try { savedTheme = localStorage.getItem("nf-theme") || "robot"; } catch (e) {}
-setTheme(["robot", "aurora", "sunset", "ocean", "dark"].includes(savedTheme) ? savedTheme : "robot");
+setTheme(["robot", "geforce", "aurora", "sunset", "ocean", "dark"].includes(savedTheme) ? savedTheme : "robot");
 $("logsClose").onclick = closeLogs;
 $("logsView").onclick = e => { if (e.target === $("logsView")) closeLogs(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("logsView").classList.contains("hidden")) closeLogs(); });
