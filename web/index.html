@@ -199,8 +199,24 @@ button.ghost:not(:disabled):hover { border-color: var(--cyan); box-shadow: 0 0 1
 .mic[hidden] { display: none; }
 .mic svg { width: 20px; height: 20px; }
 .tryBar .mic svg { width: 16px; height: 16px; }
-.mic.rec { color: #fff !important; background: #ff3b6b !important; border-color: #ff3b6b !important; animation: micpulse 1.2s infinite; }
-@keyframes micpulse { 0% { box-shadow: 0 0 0 0 rgba(255,59,107,.7); } 100% { box-shadow: 0 0 0 16px rgba(255,59,107,0); } }
+@property --ma { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.mic, html[data-theme] .mic.ghost:not([data-t]) { color: #5cfff0 !important; border: 2px solid transparent !important;
+  background: radial-gradient(circle at 50% 40%, #1d2a5c, #0a0f24 70%) padding-box,
+    conic-gradient(from var(--ma), #00f0ff, #7a4dff, #ff2bd6, #ffb02e, #00f0ff) border-box !important;
+}
+html[data-theme][data-theme][data-theme] .mic.mic.ghost:not([data-t]) { box-shadow: 0 0 14px -2px rgba(0,240,255,.8), 0 0 28px -6px rgba(255,43,214,.7), inset 0 0 10px rgba(0,240,255,.35);
+  animation: micspin 3s linear infinite; }
+.mic svg { filter: drop-shadow(0 0 4px #00f0ff) drop-shadow(0 0 8px rgba(0,240,255,.6)); }
+html[data-theme][data-theme][data-theme] .mic.mic.ghost:not([data-t]):hover { transform: scale(1.08); box-shadow: 0 0 22px 0 rgba(0,240,255,.9), 0 0 40px -4px rgba(255,43,214,.85), inset 0 0 12px rgba(0,240,255,.45); }
+.mic.rec, html[data-theme] .mic.ghost.rec:not([data-t]) { color: #fff !important; border-color: transparent !important;
+  background: radial-gradient(circle at 50% 45%, #ff7a3d, #ff2b6b 45%, #8a0f6b 80%) padding-box,
+    conic-gradient(from var(--ma), #ffe066, #ff2bd6, #ff3b3b, #ffb02e, #ffe066) border-box !important;
+  animation: micspin .8s linear infinite, micpulse 1s ease-out infinite; }
+html[data-theme][data-theme][data-theme] .mic.mic.ghost.rec:not([data-t]) { animation: micspin .8s linear infinite, micpulse 1s ease-out infinite; }
+.mic.rec svg { filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 12px #ffe066); }
+@keyframes micspin { to { --ma: 360deg; } }
+@media (prefers-reduced-motion: reduce) { html[data-theme][data-theme][data-theme] .mic.mic.ghost:not([data-t]) { animation: none; } }
+@keyframes micpulse { 0% { box-shadow: 0 0 0 0 rgba(255,43,107,.8), 0 0 0 0 rgba(255,224,102,.6), 0 0 24px rgba(255,43,214,.9); } 100% { box-shadow: 0 0 0 18px rgba(255,43,107,0), 0 0 0 32px rgba(255,224,102,0), 0 0 24px rgba(255,43,214,.9); } }
 .tryBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 .tryBar button { min-height: 34px; font-size: 13px; padding: 0 14px; }
 .tryBar span { font: 12px var(--mono); color: var(--muted); }
