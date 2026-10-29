@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NemoForge</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='#2af0cf'/%3E%3Cstop offset='1' stop-color='#7a4dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='6' y='10' width='52' height='44' rx='12' fill='#14182c' stroke='url%28#g%29' stroke-width='4'/%3E%3Ccircle cx='23' cy='31' r='6' fill='#2af0cf'/%3E%3Ccircle cx='41' cy='31' r='6' fill='#2af0cf'/%3E%3Crect x='22' y='43' width='20' height='4' rx='2' fill='#ffb02e'/%3E%3Crect x='29' y='2' width='6' height='9' rx='3' fill='#ffb02e'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0d0f0c; --panel: #151813; --panel2: #1b1f18; --line: #2a3026; --text: #e8ebe4; --muted: #9aa393;
@@ -674,6 +675,41 @@ html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost) { backgroun
 @media (prefers-reduced-motion: reduce) {
   html[data-theme="robot"]:not([data-theme="dark"]) body::before, html[data-theme="robot"]:not([data-theme="dark"]) body::after, html[data-theme="robot"]:not([data-theme="dark"]) .hero h2::after, html[data-theme="robot"]:not([data-theme="dark"]) .hero::after, html[data-theme="robot"]:not([data-theme="dark"]) .kpi .val, html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost), html[data-theme="robot"]:not([data-theme="dark"]) .panel:hover::after { animation: none; }
   html[data-theme="robot"]:not([data-theme="dark"]) body::after { display: none; }
+}
+/* ---- Style polish: glass header, flowing headline, staggered entrances, neon hovers ---- */
+html[data-theme="robot"]:not([data-theme="dark"]) { --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; scrollbar-color: #2af0cf #1b2350; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::-webkit-scrollbar { width: 10px; height: 10px; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::-webkit-scrollbar-track { background: #161b3a; }
+html[data-theme="robot"]:not([data-theme="dark"]) ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #2af0cf, #7a4dff); border-radius: 10px; border: 2px solid #161b3a; }
+html[data-theme="robot"]:not([data-theme="dark"]) header { backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
+html[data-theme="robot"]:not([data-theme="dark"]) header h1::before { animation: blink 5s infinite; }
+@keyframes blink { 0%, 46%, 50%, 100% { transform: scaleY(1); } 48% { transform: scaleY(.15); } }
+html[data-theme="robot"]:not([data-theme="dark"]) header h1 span { background: linear-gradient(90deg, #ffb02e, #ff4f8b, #b06bff, #2af0cf, #ffb02e); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: flow 8s linear infinite; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%2300ffd5' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #f2fbfa 0%, #bff7ec 20%, #3df5d0 40%, #ffc56b 60%, #ff7ab8 80%, #f2fbfa 100%);
+  background-size: 240px 20px, 250% 100%; -webkit-background-clip: padding-box, text; background-clip: padding-box, text; animation: flowh 10s ease-in-out infinite alternate; }
+@keyframes flow { to { background-position: 300% 0; } }
+@keyframes flowh { from { background-position: 0 100%, 0% 0; } to { background-position: 240px 100%, 100% 0; } }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero > * { animation: rise .7s cubic-bezier(.2,.8,.2,1) backwards; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(2) { animation-delay: .08s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(3) { animation-delay: .16s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(4) { animation-delay: .24s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(5) { animation-delay: .32s; } html[data-theme="robot"]:not([data-theme="dark"]) .hero > :nth-child(6) { animation-delay: .4s; }
+html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel { animation: rise .6s cubic-bezier(.2,.8,.2,1) backwards; }
+html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(2) { animation-delay: .06s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(3) { animation-delay: .12s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(4) { animation-delay: .18s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(5) { animation-delay: .24s; } html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel:nth-child(n+6) { animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+html[data-theme="robot"]:not([data-theme="dark"]) .panel h3 { letter-spacing: .12em; }
+html[data-theme="robot"]:not([data-theme="dark"]) button.ghost:not([data-t]) { transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease; }
+html[data-theme="robot"]:not([data-theme="dark"]) button.ghost:not([data-t]):hover { transform: translateY(-1px); border-color: #2af0cf; box-shadow: 0 0 0 1px #2af0cf, 0 0 18px -4px rgba(42,240,207,.9); }
+html[data-theme="robot"]:not([data-theme="dark"]) button:not(.ghost):not(:disabled):hover { filter: brightness(1.08) saturate(1.15); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 4px 0 #00695c, 0 0 34px 0 rgba(0,255,214,.85); }
+html[data-theme="robot"]:not([data-theme="dark"]) .chip { transition: box-shadow .2s ease, transform .2s ease; }
+html[data-theme="robot"]:not([data-theme="dark"]) .chip:hover { transform: translateY(-1px); box-shadow: 0 0 14px -3px rgba(176,107,255,.9); }
+html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea:focus { animation: focusglow 2.4s ease-in-out infinite; }
+@keyframes focusglow { 50% { box-shadow: 0 0 0 2px rgba(42,240,207,.6), 0 0 34px -4px rgba(176,107,255,.9); } }
+html[data-theme="robot"]:not([data-theme="dark"]) tbody tr { transition: background .15s ease; }
+html[data-theme="robot"]:not([data-theme="dark"]) tbody tr:hover { background: linear-gradient(90deg, rgba(42,240,207,.16), rgba(176,107,255,.12) 60%, transparent); }
+html[data-theme="robot"]:not([data-theme="dark"]) .themes button { transition: transform .2s ease; } html[data-theme="robot"]:not([data-theme="dark"]) .themes button:hover { transform: scale(1.18) rotate(8deg); }
+html[data-theme="robot"]:not([data-theme="dark"]) ::selection { background: #b06bff; color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="robot"]:not([data-theme="dark"]) header h1::before, html[data-theme="robot"]:not([data-theme="dark"]) header h1 span, html[data-theme="robot"]:not([data-theme="dark"]) .hero h2, html[data-theme="robot"]:not([data-theme="dark"]) .hero > *, html[data-theme="robot"]:not([data-theme="dark"]) main .grid .panel, html[data-theme="robot"]:not([data-theme="dark"]) .goal textarea:focus { animation: none; }
 }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff9f1c; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
