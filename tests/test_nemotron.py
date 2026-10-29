@@ -121,3 +121,22 @@ def test_dotenv_reads_utf16_written_by_powershell(tmp_path, monkeypatch):
     config._load_dotenv(tmp_path / ".env")
     assert os.environ["NF_T_U"] == "from utf16"
     monkeypatch.delenv("NF_T_U")
+
+
+def test_ultra_second_opinion_on_failed_grade():
+    from nemoforge import evals
+    from nemoforge.spec import EvalCase
+
+    class Judges:
+        def __init__(self):
+            self.tiers = []
+
+        def chat(self, tier, system, user, *, max_tokens=4096):
+            self.tiers.append(tier)
+            ok = tier == "ultra" and "A first grader failed this answer" in system
+            return json.dumps({"pass": ok, "score": 1.0 if ok else 0.0, "reason": "needs a header" if not ok else "meets criteria"})
+
+    llm = Judges()
+    case = EvalCase(id="c1", kind="typical", input="a@b.com hi", criteria="lists a@b.com")
+    out = evals.grade(llm, case, "a@b.com")
+    assert out["pass"] and out["by"] == "judge+ultra" and llm.tiers == ["super", "ultra"]
