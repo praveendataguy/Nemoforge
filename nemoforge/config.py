@@ -9,9 +9,12 @@ from pathlib import Path
 def _load_dotenv(path: Path = Path(".env")) -> None:
     """Read KEY=VALUE lines from .env so keys work in any new terminal. Real environment variables win."""
     try:
-        lines = path.read_text(encoding="utf-8-sig").splitlines()
+        raw = path.read_bytes()
     except OSError:
         return
+    # PowerShell's `echo ... > .env` writes UTF-16, so honour a UTF-16 byte-order mark.
+    encoding = "utf-16" if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else "utf-8-sig"
+    lines = raw.decode(encoding, errors="replace").splitlines()
     for line in lines:
         line = line.strip()
         if line.startswith("export "):
@@ -19,6 +22,7 @@ def _load_dotenv(path: Path = Path(".env")) -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = (part.strip() for part in line.split("=", 1))
+        key = key.removeprefix("$env:")  # tolerate PowerShell-style lines
         if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
             value = value[1:-1]
         if key and not os.environ.get(key):
