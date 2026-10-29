@@ -977,6 +977,12 @@ html[data-palette="holo"][data-theme="robot"] ::-webkit-scrollbar-thumb { backgr
 html[data-palette="holo"][data-theme="robot"] ::-webkit-scrollbar-track { background: #0d1426; }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff9f1c; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
+/* ---- Calm layer: one hero graphic (the GPU chip), nothing drawn behind the headline, input or panels ---- */
+html[data-theme="robot"]:not([data-theme="dark"])::after { background-size: 0 0, 0 0, auto, auto; opacity: .45; }
+html[data-theme="robot"]:not([data-theme="dark"])::before { opacity: .45; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero::after, html[data-theme="robot"]:not([data-theme="dark"]) body::after { display: none; }
+html[data-theme="robot"][data-theme][data-theme]:not([data-theme="dark"]) .hero h2 { background-size: 0 0, 250% 100%; padding-bottom: 4px; }
+html[data-theme="robot"]:not([data-theme="dark"]) .hero::before { opacity: .85; }
 </style>
 </head>
 <body>
