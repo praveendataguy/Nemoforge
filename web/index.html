@@ -813,6 +813,168 @@ html[data-palette="geforce"][data-theme="robot"] ::selection { background: #b6ff
 html[data-palette="geforce"][data-theme="robot"] { scrollbar-color: #b6ff00 #0b2010; }
 html[data-palette="geforce"][data-theme="robot"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b6ff00, #00e5ff); border-color: #0b2010; }
 html[data-palette="geforce"][data-theme="robot"] ::-webkit-scrollbar-track { background: #0b2010; }
+.themes button[data-t="plasma"] { background: conic-gradient(from 30deg, #d946ff, #9b30ff, #ff4fa3, #ff8a3d, #1a0828, #d946ff); }
+html[data-palette="plasma"][data-theme="robot"] .themes button[data-t="plasma"].on { border-color: #d946ff; }
+html[data-palette="plasma"][data-theme="robot"] .themes button[data-t="robot"].on { border-color: transparent; }
+html[data-palette="plasma"][data-theme="robot"] body {
+  background:
+    linear-gradient(rgba(217,70,255,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(90deg, rgba(217,70,255,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(rgba(255,79,163,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    linear-gradient(90deg, rgba(255,79,163,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    radial-gradient(900px 600px at 8% -5%, rgba(217,70,255,.30), transparent 60%),
+    radial-gradient(900px 650px at 100% 30%, rgba(255,138,61,.22), transparent 60%),
+    radial-gradient(800px 600px at 60% 110%, rgba(255,79,163,.25), transparent 60%),
+    radial-gradient(600px 400px at 0% 85%, rgba(0,240,255,.14), transparent 60%),
+    linear-gradient(160deg, #14061f, #1a0828 40%, #22061e 75%, #10062a);
+  background-attachment: fixed; }
+html[data-palette="plasma"][data-theme="robot"] header { border-bottom-color: #d946ff; background:
+    repeating-linear-gradient(90deg, rgba(217,70,255,.75) 0 1px, transparent 1px 50px) left bottom / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(217,70,255,.4) 0 1px, transparent 1px 10px) left bottom / 100% 5px no-repeat,
+    linear-gradient(90deg, rgba(20,6,30,.94), rgba(30,8,36,.94) 50%, rgba(36,8,24,.94)); }
+@keyframes zapp { 0%, 100% { box-shadow: 0 1px 6px rgba(217,70,255,.4); } 50% { box-shadow: 0 1px 18px rgba(217,70,255,.95), 0 6px 34px -10px rgba(255,138,61,.6); } }
+html[data-palette="plasma"][data-theme="robot"] header { animation: zapp 3s ease-in-out infinite; }
+html[data-palette="plasma"][data-theme="robot"] header h1 span { background: linear-gradient(90deg, #d946ff, #9b30ff, #ff4fa3, #ff8a3d, #d946ff); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+html[data-palette="plasma"][data-theme="robot"] .eyebrow { color: #6a1b9a; border-color: #d946ff; }
+html[data-palette="plasma"][data-theme="robot"] .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%23d946ff' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #ffffff 0%, #f3c6ff 20%, #d946ff 40%, #ff4fa3 60%, #ff8a3d 80%, #ffffff 100%);
+  background-size: 240px 20px, 250% 100%; -webkit-background-clip: padding-box, text; background-clip: padding-box, text; }
+html[data-palette="plasma"][data-theme="robot"] .hero h2::after { color: #d946ff; -webkit-text-fill-color: #d946ff; }
+html[data-palette="plasma"][data-theme="robot"] .hero p b { color: #e98bff; }
+html[data-palette="plasma"][data-theme="robot"] button:not(.ghost) { background: linear-gradient(135deg, #ee9dff, #d946ff 35%, #9b30ff 75%, #7a22b0); background-size: 200% 100%; color: #1a0024; border: 1px solid #7a22b0; text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #5a1480, 0 0 30px -2px rgba(217,70,255,.85); }
+html[data-palette="plasma"][data-theme="robot"] button:not(.ghost):not(:disabled):hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #5a1480, 0 0 42px 2px rgba(217,70,255,.95); }
+html[data-palette="plasma"][data-theme="robot"] .panel {
+  background-image:
+    linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff), linear-gradient(#d946ff, #d946ff),
+    linear-gradient(rgba(70,0,90,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(70,0,90,.06) 1px, transparent 1px),
+    linear-gradient(115deg, rgba(248,226,255,.9), rgba(255,220,238,.9) 22%, rgba(255,228,210,.9) 45%, rgba(255,240,214,.9) 68%, rgba(246,230,255,.9) 86%, rgba(248,226,255,.9));
+  box-shadow: 0 0 0 1px rgba(217,70,255,.55), 0 0 28px -6px rgba(217,70,255,.6), 0 18px 34px -18px rgba(0,0,0,.85); }
+html[data-palette="plasma"][data-theme="robot"] .panel:not(.overlay > .panel):hover { box-shadow: 0 0 0 1px rgba(217,70,255,.9), 0 0 42px -4px rgba(217,70,255,.8), 0 22px 40px -20px rgba(0,0,0,.9); }
+html[data-palette="plasma"][data-theme="robot"] .panel::before { background: linear-gradient(90deg, transparent, #d946ff 20%, #ff8a3d 50%, #d946ff 80%, transparent); background-size: 200% 100%; }
+html[data-palette="plasma"][data-theme="robot"] .panel > h3::after, html[data-palette="plasma"][data-theme="robot"] .panel > .teamHead h3::after { color: #561580; border-color: #c77dff; background: #fbeaff; }
+html[data-palette="plasma"][data-theme="robot"] button.ghost:not([data-t]), html[data-palette="plasma"][data-theme="robot"] .chip, html[data-palette="plasma"][data-theme="robot"] .eyebrow { background: linear-gradient(120deg, #fbeaff, #ffe6f3 55%, #ffeadb); border-color: #c77dff; }
+html[data-palette="plasma"][data-theme="robot"] button.ghost:not([data-t]):hover { border-color: #d946ff; box-shadow: 0 0 0 1px #d946ff, 0 0 18px -4px rgba(217,70,255,.95); }
+html[data-palette="plasma"][data-theme="robot"] .goal textarea, html[data-palette="plasma"][data-theme="robot"] .playground textarea, html[data-palette="plasma"][data-theme="robot"] .row input, html[data-palette="plasma"][data-theme="robot"] .opts input[type=number] { background: linear-gradient(100deg, #fdf3ff, #fff0f7 50%, #fff3ea); border-color: #c77dff; }
+html[data-palette="plasma"][data-theme="robot"] .goal textarea { box-shadow: 0 0 0 1px rgba(217,70,255,.45), 0 0 24px -8px rgba(217,70,255,.8); }
+html[data-palette="plasma"][data-theme="robot"] .kpi.volume { --g: #d946ff; --g2: #5a1480; --gt: #f5c2ff; }
+html[data-palette="plasma"][data-theme="robot"] .kpi.quality { --g: #ff8a3d; --g2: #7a3000; --gt: #ffc9a3; }
+html[data-palette="plasma"][data-theme="robot"] .kpi.cost { --g: #ffd400; --g2: #7a5a00; --gt: #fff09a; }
+html[data-palette="plasma"][data-theme="robot"] .kpi.risk { --g: #ff3d7f; --g2: #7a0f3a; --gt: #ffb3cd; }
+html[data-palette="plasma"][data-theme="robot"] .route-head b { color: #6a1b9a; }
+html[data-palette="plasma"][data-theme="robot"] ::selection { background: #d946ff; color: #1a0024; }
+html[data-palette="plasma"][data-theme="robot"] { scrollbar-color: #d946ff #1a0828; }
+html[data-palette="plasma"][data-theme="robot"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #d946ff, #ff8a3d); border-color: #1a0828; }
+html[data-palette="plasma"][data-theme="robot"] ::-webkit-scrollbar-track { background: #1a0828; }
+.themes button[data-t="magma"] { background: conic-gradient(from 30deg, #ffc400, #ff7a00, #e63900, #ff2e63, #260c06, #ffc400); }
+html[data-palette="magma"][data-theme="robot"] .themes button[data-t="magma"].on { border-color: #ff7a00; }
+html[data-palette="magma"][data-theme="robot"] .themes button[data-t="robot"].on { border-color: transparent; }
+html[data-palette="magma"][data-theme="robot"] body {
+  background:
+    linear-gradient(rgba(255,122,0,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(90deg, rgba(255,122,0,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(rgba(255,196,0,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    linear-gradient(90deg, rgba(255,196,0,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    radial-gradient(900px 600px at 8% -5%, rgba(255,122,0,.30), transparent 60%),
+    radial-gradient(900px 650px at 100% 30%, rgba(255,46,99,.22), transparent 60%),
+    radial-gradient(800px 600px at 60% 110%, rgba(255,196,0,.25), transparent 60%),
+    radial-gradient(600px 400px at 0% 85%, rgba(177,77,255,.14), transparent 60%),
+    linear-gradient(160deg, #1f0a04, #260c06 40%, #2a0a0e 75%, #1e0612);
+  background-attachment: fixed; }
+html[data-palette="magma"][data-theme="robot"] header { border-bottom-color: #ff7a00; background:
+    repeating-linear-gradient(90deg, rgba(255,122,0,.75) 0 1px, transparent 1px 50px) left bottom / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255,122,0,.4) 0 1px, transparent 1px 10px) left bottom / 100% 5px no-repeat,
+    linear-gradient(90deg, rgba(30,10,4,.94), rgba(38,12,6,.94) 50%, rgba(34,8,14,.94)); }
+@keyframes zapm { 0%, 100% { box-shadow: 0 1px 6px rgba(255,122,0,.4); } 50% { box-shadow: 0 1px 18px rgba(255,122,0,.95), 0 6px 34px -10px rgba(255,46,99,.6); } }
+html[data-palette="magma"][data-theme="robot"] header { animation: zapm 3s ease-in-out infinite; }
+html[data-palette="magma"][data-theme="robot"] header h1 span { background: linear-gradient(90deg, #ff7a00, #e63900, #ffc400, #ff2e63, #ff7a00); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+html[data-palette="magma"][data-theme="robot"] .eyebrow { color: #9a3a00; border-color: #ff7a00; }
+html[data-palette="magma"][data-theme="robot"] .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%23ff7a00' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #ffffff 0%, #ffd9a0 20%, #ff7a00 40%, #ffc400 60%, #ff2e63 80%, #ffffff 100%);
+  background-size: 240px 20px, 250% 100%; -webkit-background-clip: padding-box, text; background-clip: padding-box, text; }
+html[data-palette="magma"][data-theme="robot"] .hero h2::after { color: #ff7a00; -webkit-text-fill-color: #ff7a00; }
+html[data-palette="magma"][data-theme="robot"] .hero p b { color: #ffb347; }
+html[data-palette="magma"][data-theme="robot"] button:not(.ghost) { background: linear-gradient(135deg, #ffb85c, #ff7a00 35%, #e63900 75%, #a83a00); background-size: 200% 100%; color: #2a0a00; border: 1px solid #a83a00; text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #8a3000, 0 0 30px -2px rgba(255,122,0,.85); }
+html[data-palette="magma"][data-theme="robot"] button:not(.ghost):not(:disabled):hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #8a3000, 0 0 42px 2px rgba(255,122,0,.95); }
+html[data-palette="magma"][data-theme="robot"] .panel {
+  background-image:
+    linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00), linear-gradient(#ff7a00, #ff7a00),
+    linear-gradient(rgba(110,40,0,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(110,40,0,.06) 1px, transparent 1px),
+    linear-gradient(115deg, rgba(255,232,204,.9), rgba(255,244,204,.9) 22%, rgba(255,222,230,.9) 45%, rgba(255,236,214,.9) 68%, rgba(255,238,220,.9) 86%, rgba(255,232,204,.9));
+  box-shadow: 0 0 0 1px rgba(255,122,0,.55), 0 0 28px -6px rgba(255,122,0,.6), 0 18px 34px -18px rgba(0,0,0,.85); }
+html[data-palette="magma"][data-theme="robot"] .panel:not(.overlay > .panel):hover { box-shadow: 0 0 0 1px rgba(255,122,0,.9), 0 0 42px -4px rgba(255,122,0,.8), 0 22px 40px -20px rgba(0,0,0,.9); }
+html[data-palette="magma"][data-theme="robot"] .panel::before { background: linear-gradient(90deg, transparent, #ff7a00 20%, #ff2e63 50%, #ff7a00 80%, transparent); background-size: 200% 100%; }
+html[data-palette="magma"][data-theme="robot"] .panel > h3::after, html[data-palette="magma"][data-theme="robot"] .panel > .teamHead h3::after { color: #7a2c00; border-color: #ffa64d; background: #fff0dc; }
+html[data-palette="magma"][data-theme="robot"] button.ghost:not([data-t]), html[data-palette="magma"][data-theme="robot"] .chip, html[data-palette="magma"][data-theme="robot"] .eyebrow { background: linear-gradient(120deg, #fff0dc, #fff6d6 55%, #ffe6ec); border-color: #ffa64d; }
+html[data-palette="magma"][data-theme="robot"] button.ghost:not([data-t]):hover { border-color: #ff7a00; box-shadow: 0 0 0 1px #ff7a00, 0 0 18px -4px rgba(255,122,0,.95); }
+html[data-palette="magma"][data-theme="robot"] .goal textarea, html[data-palette="magma"][data-theme="robot"] .playground textarea, html[data-palette="magma"][data-theme="robot"] .row input, html[data-palette="magma"][data-theme="robot"] .opts input[type=number] { background: linear-gradient(100deg, #fff7ee, #fffbe8 50%, #fff0f3); border-color: #ffa64d; }
+html[data-palette="magma"][data-theme="robot"] .goal textarea { box-shadow: 0 0 0 1px rgba(255,122,0,.45), 0 0 24px -8px rgba(255,122,0,.8); }
+html[data-palette="magma"][data-theme="robot"] .kpi.volume { --g: #ff7a00; --g2: #8a3000; --gt: #ffd29a; }
+html[data-palette="magma"][data-theme="robot"] .kpi.quality { --g: #ff2e63; --g2: #7a0f2a; --gt: #ffb3c4; }
+html[data-palette="magma"][data-theme="robot"] .kpi.cost { --g: #b14dff; --g2: #4a1480; --gt: #dcb3ff; }
+html[data-palette="magma"][data-theme="robot"] .kpi.risk { --g: #ff3d7f; --g2: #7a0f3a; --gt: #ffb3cd; }
+html[data-palette="magma"][data-theme="robot"] .route-head b { color: #9a3a00; }
+html[data-palette="magma"][data-theme="robot"] ::selection { background: #ff7a00; color: #2a0a00; }
+html[data-palette="magma"][data-theme="robot"] { scrollbar-color: #ff7a00 #260c06; }
+html[data-palette="magma"][data-theme="robot"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #ff7a00, #ff2e63); border-color: #260c06; }
+html[data-palette="magma"][data-theme="robot"] ::-webkit-scrollbar-track { background: #260c06; }
+.themes button[data-t="holo"] { background: conic-gradient(from 30deg, #2bffc6, #c38bff, #ff7eb6, #ffe66d, #0d1426, #2bffc6); }
+html[data-palette="holo"][data-theme="robot"] .themes button[data-t="holo"].on { border-color: #2bffc6; }
+html[data-palette="holo"][data-theme="robot"] .themes button[data-t="robot"].on { border-color: transparent; }
+html[data-palette="holo"][data-theme="robot"] body {
+  background:
+    linear-gradient(rgba(43,255,198,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(90deg, rgba(43,255,198,.10) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(rgba(195,139,255,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    linear-gradient(90deg, rgba(195,139,255,.04) 1px, transparent 1px) 0 0 / 10px 10px,
+    radial-gradient(900px 600px at 8% -5%, rgba(43,255,198,.30), transparent 60%),
+    radial-gradient(900px 650px at 100% 30%, rgba(255,126,182,.22), transparent 60%),
+    radial-gradient(800px 600px at 60% 110%, rgba(195,139,255,.25), transparent 60%),
+    radial-gradient(600px 400px at 0% 85%, rgba(255,230,109,.14), transparent 60%),
+    linear-gradient(160deg, #061a1a, #0d1426 40%, #1a0d26 75%, #200a1c);
+  background-attachment: fixed; }
+html[data-palette="holo"][data-theme="robot"] header { border-bottom-color: #2bffc6; background:
+    repeating-linear-gradient(90deg, rgba(43,255,198,.75) 0 1px, transparent 1px 50px) left bottom / 100% 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(43,255,198,.4) 0 1px, transparent 1px 10px) left bottom / 100% 5px no-repeat,
+    linear-gradient(90deg, rgba(6,26,26,.94), rgba(14,20,40,.94) 50%, rgba(28,12,36,.94)); }
+@keyframes zaph { 0%, 100% { box-shadow: 0 1px 6px rgba(43,255,198,.4); } 50% { box-shadow: 0 1px 18px rgba(43,255,198,.95), 0 6px 34px -10px rgba(255,126,182,.6); } }
+html[data-palette="holo"][data-theme="robot"] header { animation: zaph 3s ease-in-out infinite; }
+html[data-palette="holo"][data-theme="robot"] header h1 span { background: linear-gradient(90deg, #2bffc6, #00b894, #c38bff, #ff7eb6, #2bffc6); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+html[data-palette="holo"][data-theme="robot"] .eyebrow { color: #007a5e; border-color: #2bffc6; }
+html[data-palette="holo"][data-theme="robot"] .hero h2 { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' fill='none'%3E%3Cpath d='M0 10h40l6-8 6 16 6-16 6 16 6-8h50l4-6 4 12 4-6h108' stroke='%232bffc6' stroke-width='2'/%3E%3C/svg%3E") left bottom / 240px 20px repeat-x,
+    linear-gradient(92deg, #ffffff 0%, #b8ffe9 20%, #2bffc6 40%, #c38bff 60%, #ff7eb6 80%, #ffffff 100%);
+  background-size: 240px 20px, 250% 100%; -webkit-background-clip: padding-box, text; background-clip: padding-box, text; }
+html[data-palette="holo"][data-theme="robot"] .hero h2::after { color: #2bffc6; -webkit-text-fill-color: #2bffc6; }
+html[data-palette="holo"][data-theme="robot"] .hero p b { color: #7dffd9; }
+html[data-palette="holo"][data-theme="robot"] button:not(.ghost) { background: linear-gradient(135deg, #8affdf, #2bffc6 35%, #00b894 75%, #008a6a); background-size: 200% 100%; color: #00201a; border: 1px solid #008a6a; text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #006a52, 0 0 30px -2px rgba(43,255,198,.85); }
+html[data-palette="holo"][data-theme="robot"] button:not(.ghost):not(:disabled):hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 0 #006a52, 0 0 42px 2px rgba(43,255,198,.95); }
+html[data-palette="holo"][data-theme="robot"] .panel {
+  background-image:
+    linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6), linear-gradient(#2bffc6, #2bffc6),
+    linear-gradient(rgba(0,80,60,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,80,60,.06) 1px, transparent 1px),
+    linear-gradient(115deg, rgba(220,255,244,.9), rgba(236,224,255,.9) 22%, rgba(255,224,238,.9) 45%, rgba(255,248,210,.9) 68%, rgba(224,255,246,.9) 86%, rgba(220,255,244,.9));
+  box-shadow: 0 0 0 1px rgba(43,255,198,.55), 0 0 28px -6px rgba(43,255,198,.6), 0 18px 34px -18px rgba(0,0,0,.85); }
+html[data-palette="holo"][data-theme="robot"] .panel:not(.overlay > .panel):hover { box-shadow: 0 0 0 1px rgba(43,255,198,.9), 0 0 42px -4px rgba(43,255,198,.8), 0 22px 40px -20px rgba(0,0,0,.9); }
+html[data-palette="holo"][data-theme="robot"] .panel::before { background: linear-gradient(90deg, transparent, #2bffc6 20%, #ff7eb6 50%, #2bffc6 80%, transparent); background-size: 200% 100%; }
+html[data-palette="holo"][data-theme="robot"] .panel > h3::after, html[data-palette="holo"][data-theme="robot"] .panel > .teamHead h3::after { color: #005e48; border-color: #8fe3cc; background: #e6fff8; }
+html[data-palette="holo"][data-theme="robot"] button.ghost:not([data-t]), html[data-palette="holo"][data-theme="robot"] .chip, html[data-palette="holo"][data-theme="robot"] .eyebrow { background: linear-gradient(120deg, #e6fff8, #f1e6ff 55%, #ffe6f1); border-color: #8fe3cc; }
+html[data-palette="holo"][data-theme="robot"] button.ghost:not([data-t]):hover { border-color: #2bffc6; box-shadow: 0 0 0 1px #2bffc6, 0 0 18px -4px rgba(43,255,198,.95); }
+html[data-palette="holo"][data-theme="robot"] .goal textarea, html[data-palette="holo"][data-theme="robot"] .playground textarea, html[data-palette="holo"][data-theme="robot"] .row input, html[data-palette="holo"][data-theme="robot"] .opts input[type=number] { background: linear-gradient(100deg, #f2fffb, #f7f0ff 50%, #fff0f6); border-color: #8fe3cc; }
+html[data-palette="holo"][data-theme="robot"] .goal textarea { box-shadow: 0 0 0 1px rgba(43,255,198,.45), 0 0 24px -8px rgba(43,255,198,.8); }
+html[data-palette="holo"][data-theme="robot"] .kpi.volume { --g: #2bffc6; --g2: #006a52; --gt: #b3ffea; }
+html[data-palette="holo"][data-theme="robot"] .kpi.quality { --g: #ff7eb6; --g2: #7a1a4a; --gt: #ffc2dd; }
+html[data-palette="holo"][data-theme="robot"] .kpi.cost { --g: #ffd400; --g2: #7a5a00; --gt: #fff09a; }
+html[data-palette="holo"][data-theme="robot"] .kpi.risk { --g: #c38bff; --g2: #4a1a80; --gt: #e2ccff; }
+html[data-palette="holo"][data-theme="robot"] .route-head b { color: #007a5e; }
+html[data-palette="holo"][data-theme="robot"] ::selection { background: #2bffc6; color: #00201a; }
+html[data-palette="holo"][data-theme="robot"] { scrollbar-color: #2bffc6 #0d1426; }
+html[data-palette="holo"][data-theme="robot"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #2bffc6, #ff7eb6); border-color: #0d1426; }
+html[data-palette="holo"][data-theme="robot"] ::-webkit-scrollbar-track { background: #0d1426; }
 html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"].on { border-color: #ff9f1c; }
 .themes button[data-t="robot"] { background: radial-gradient(circle at 35% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), radial-gradient(circle at 65% 42%, #fff 0 1.5px, #00d0ff 2px 3px, transparent 3.5px), linear-gradient(180deg, #ff9a3c, #ff7a00); }
 </style>
@@ -821,7 +983,7 @@ html[data-theme="robot"]:not([data-theme="dark"]) .themes button[data-t="robot"]
 <header>
   <h1>Nemo<span>Forge</span></h1>
   <button class="ghost logsBtn" id="logsBtn">Observability logs</button>
-  <div class="themes" id="themes" role="group" aria-label="Colour theme"><button class="ghost" data-t="robot" title="Robot" aria-label="Robot theme"></button><button class="ghost" data-t="geforce" title="GeForce green" aria-label="GeForce green theme"></button><button class="ghost" data-t="aurora" title="Aurora" aria-label="Aurora theme"></button><button class="ghost" data-t="sunset" title="Sunset" aria-label="Sunset theme"></button><button class="ghost" data-t="ocean" title="Ocean" aria-label="Ocean theme"></button><button class="ghost" data-t="dark" title="Dark" aria-label="Dark theme"></button></div>
+  <div class="themes" id="themes" role="group" aria-label="Colour theme"><button class="ghost" data-t="robot" title="Robot" aria-label="Robot theme"></button><button class="ghost" data-t="geforce" title="GeForce green" aria-label="GeForce green theme"></button><button class="ghost" data-t="plasma" title="Plasma violet" aria-label="Plasma violet theme"></button><button class="ghost" data-t="magma" title="Magma" aria-label="Magma theme"></button><button class="ghost" data-t="holo" title="Holo" aria-label="Holo theme"></button><button class="ghost" data-t="aurora" title="Aurora" aria-label="Aurora theme"></button><button class="ghost" data-t="sunset" title="Sunset" aria-label="Sunset theme"></button><button class="ghost" data-t="ocean" title="Ocean" aria-label="Ocean theme"></button><button class="ghost" data-t="dark" title="Dark" aria-label="Dark theme"></button></div>
   <div class="chips" id="chips"></div>
 </header>
 <main>
@@ -1314,17 +1476,19 @@ function showLog(id) {
 }
 $("logsBtn").onclick = () => openLogs();
 // ---- Colour theme picker (remembered per browser) ----
-// "geforce" is the Robot theme with a vibrant GPU-green palette on top.
+// Palettes are the Robot theme with vibrant colours on top: GeForce green, Plasma violet, Magma and Holo.
+const PALETTES = ["geforce", "plasma", "magma", "holo"];
 function setTheme(t) {
-  document.documentElement.dataset.theme = t === "geforce" ? "robot" : t;
-  if (t === "geforce") document.documentElement.dataset.palette = "geforce"; else delete document.documentElement.dataset.palette;
+  const palette = PALETTES.includes(t);
+  document.documentElement.dataset.theme = palette ? "robot" : t;
+  if (palette) document.documentElement.dataset.palette = t; else delete document.documentElement.dataset.palette;
   $("lightTheme").disabled = t === "dark";
   $("themes").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   try { localStorage.setItem("nf-theme", t); } catch (e) {}
 }
 $("themes").querySelectorAll("button").forEach(b => b.onclick = () => setTheme(b.dataset.t));
 let savedTheme = "robot"; try { savedTheme = localStorage.getItem("nf-theme") || "robot"; } catch (e) {}
-setTheme(["robot", "geforce", "aurora", "sunset", "ocean", "dark"].includes(savedTheme) ? savedTheme : "robot");
+setTheme(["robot", ...PALETTES, "aurora", "sunset", "ocean", "dark"].includes(savedTheme) ? savedTheme : "robot");
 $("logsClose").onclick = closeLogs;
 $("logsView").onclick = e => { if (e.target === $("logsView")) closeLogs(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("logsView").classList.contains("hidden")) closeLogs(); });
