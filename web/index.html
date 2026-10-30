@@ -1016,6 +1016,15 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .owner, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .metric, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .pipe .node { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: var(--text); box-shadow: none; }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .metric b, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .metric strong, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .owner b, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .owner strong { color: var(--text); -webkit-text-fill-color: currentColor; }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .spot { background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 10%, transparent), rgba(255,255,255,.02)); border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent); }
+/* Pro KPI tiles: flat dark glass, thin accent bar, no neon */
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-top: 2px solid var(--g); border-radius: 10px; box-shadow: none; animation: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi::before, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi::after { display: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi * { color: var(--muted); text-shadow: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .grp { color: var(--g); letter-spacing: .1em; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .grp::before { box-shadow: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .val { color: #f1f5f9; text-shadow: none; font-family: var(--mono); font-weight: 600; animation: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .lbl { color: var(--text); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi.click:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); border-top-color: var(--g); box-shadow: none; transform: translateY(-1px); }
 </style>
 </head>
 <body>
