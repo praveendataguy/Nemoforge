@@ -1075,7 +1075,7 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
           <li><b>Architect</b> (Ultra) designs the team: agents, order, tools, model per agent.</li>
           <li><b>Toolsmith</b> (Super) writes each custom Python tool and checks it in a sandbox.</li>
           <li><b>Test designer</b> (Ultra) writes test cases; a third are held out and never shown to the optimizer.</li>
-          <li><b>Evaluate</b>: the team answers every test and a Super judge grades each answer.</li>
+          <li><b>Evaluate</b>: the team answers every test and a Super judge grades each answer. If it marks an answer as failed, Ultra gives a second opinion, so one harsh grade can't sink a good answer.</li>
           <li><b>Optimizer</b> (Ultra) reads the failures and fixes prompts, tools or tiers.</li>
           <li><b>Healer</b> (Ultra) steps in when the build is stuck or crashes, then a bonus round checks the repair.</li>
           <li>The best round ships. Try it in the playground or deploy it.</li></ol></details>
@@ -1084,9 +1084,10 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
         <details><summary>Observability and severity</summary><p>Every input is a log record: build goals, graded tests and playground runs. <span class="sev critical">critical</span> crashes, <span class="sev high">high</span> weak held-out or big gaps, <span class="sev medium">medium</span> below target or interrupted, <span class="sev low">low</span> notes such as repairs, <span class="sev info">info</span> all good.</p></details>
         <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team the 3 earlier runs most related to the new request, ranked by meaning with a Nebius embedding model, for example to follow up on open items from a related meeting.</p></details>
         <details><summary>Nemotron reasoning</summary><p>Every call sets Nemotron's reasoning switch per tier: Ultra and Super think step by step, Nano answers directly to stay fast and cheap. The Nemotron reasoning panel in a build shows what Ultra and Super were thinking.</p></details>
-        <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>.</p><pre>python -m nemoforge serve
+        <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. A build passes when both training and held-out scores reach the target (85% by default, <code>NF_PASS_THRESHOLD</code>). Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_PASS_THRESHOLD</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>. Put them in a <code>.env</code> file in the project folder, or set them in the terminal.</p><pre>python -m nemoforge serve
 python -m nemoforge build "goal" --budget 1
-python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
+python -m nemoforge run &lt;build-id&gt; "input"
+python demo/batch_test.py --total 1</pre></details>
       </div>
     </aside>
     <section>
