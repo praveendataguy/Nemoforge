@@ -8,7 +8,7 @@ NemoForge is an agent that builds agents. It runs entirely on **NVIDIA Nemotron*
 
 Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track).
 
-**Demo video:** _link coming soon_
+**Demo video:** [watch on YouTube](https://youtu.be/hqNy0B3AFcc)
 
 ## Highlights
 
