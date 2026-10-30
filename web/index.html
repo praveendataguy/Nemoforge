@@ -1038,6 +1038,14 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
   border-top: 1.5px solid var(--g); border-right: 1.5px solid var(--g); opacity: .8; }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .val { color: color-mix(in srgb, var(--g) 40%, #ffffff); }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi.click:hover { border-color: color-mix(in srgb, var(--g) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--g) 35%, transparent), 0 12px 30px -18px var(--g); }
+
+/* Self-healing card: dark glass so the diagnosis is readable */
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal { background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--acc2) 14%, transparent), transparent 60%), rgba(10,14,18,.82); border: 1px solid color-mix(in srgb, var(--acc2) 30%, rgba(255,255,255,.08)); color: var(--text); box-shadow: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal p { color: #e6edf3; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal ul, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .lbl2, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .pending { color: #9aa7b4; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .hk { color: var(--acc2); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .outcome { border-top-color: rgba(255,255,255,.12); color: #9aa7b4; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .outcome .ok { color: var(--acc); } html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .outcome .meh { color: #ffc56b; } html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .heal .outcome .no { color: #ff6b81; }
 </style>
 </head>
 <body>
