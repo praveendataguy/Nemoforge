@@ -1025,6 +1025,19 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .val { color: #f1f5f9; text-shadow: none; font-family: var(--mono); font-weight: 600; animation: none; }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .lbl { color: var(--text); }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi.click:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); border-top-color: var(--g); box-shadow: none; transform: translateY(-1px); }
+/* Pro KPI colour: accent-tinted glass, fine grid, gradient bar, corner tick */
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi { position: relative; overflow: hidden; border-top: 0;
+  background:
+    linear-gradient(90deg, var(--g), color-mix(in srgb, var(--g) 30%, transparent) 70%, transparent) top left / 100% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 14px,
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 14px 100%,
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--g) 22%, transparent), transparent 60%),
+    rgba(10,14,18,.82);
+  border: 1px solid color-mix(in srgb, var(--g) 28%, rgba(255,255,255,.06)); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi::after { content: ""; display: block; position: absolute; right: 8px; top: 8px; width: 10px; height: 10px;
+  border-top: 1.5px solid var(--g); border-right: 1.5px solid var(--g); opacity: .8; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .val { color: color-mix(in srgb, var(--g) 40%, #ffffff); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi.click:hover { border-color: color-mix(in srgb, var(--g) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--g) 35%, transparent), 0 12px 30px -18px var(--g); }
 </style>
 </head>
 <body>
