@@ -1,5 +1,7 @@
 # NemoForge
 
+![NemoForge home page](docs/home.png)
+
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)
 
 **Describe a job in one sentence. Get back a team of AI agents that has been designed, tested, improved and deployed for you.**
@@ -7,6 +9,32 @@
 NemoForge is an agent that builds agents. It runs entirely on **NVIDIA Nemotron** models served by **Nebius Token Factory**, and it ships what it builds to a **Nebius Serverless Endpoint**.
 
 Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track).
+
+**Demo video:** [watch on YouTube](https://youtu.be/hqNy0B3AFcc)
+
+## Highlights
+
+- **Agents that build agents.** One sentence in; a designed, tool-equipped, tested agent team out.
+- **Honest scores.** A third of the tests are held out and never shown to the optimizer, and overfitting is caught.
+- **Self-healing.** When a build is stuck or crashes, Nemotron Ultra finds the root cause and repairs the team.
+- **Smart router.** Nano rates every request and sends it to the cheapest Nemotron model that can handle it.
+- **Fair grading.** Super grades every answer, and Ultra gives a second opinion on any failure.
+- **Observable.** A live build log, a dashboard of every build, and severity-rated logs for every input.
+- **Cheap.** Simple agents build for 2 to 4 cents, with a hard budget per build.
+
+## Results
+
+Recent builds on Nemotron through Nebius Token Factory:
+
+| Agent | Held-out score | Build cost |
+| --- | --- | --- |
+| gst_calculator | 100% | $0.018 |
+| sentiment_classifier | 100% | $0.020 |
+| review_sentiment_classifier | 100% | $0.021 |
+| email_extractor | 100% | $0.023 |
+| ticket_classifier | 100% | $0.042 |
+
+Harder goals that miss the target are shown as **below target**, with the self-healing diagnosis explaining why.
 
 ## Why
 
@@ -19,20 +47,23 @@ flowchart LR
     G["Goal, in one sentence"] --> A["Architect<br/>Nemotron 3 Ultra"]
     A -->|agent team spec| T["Toolsmith<br/>Nemotron 3 Super"]
     T -->|tool code + self-checks<br/>run in a no-network sandbox| D["Test Designer<br/>Nemotron 3 Ultra"]
-    D -->|training tests| E["Evaluate<br/>team runs on Nano / Super<br/>graded by Super"]
+    D -->|training tests| E["Evaluate<br/>smart router picks Nano / Super / Ultra<br/>graded by Super, Ultra second opinion"]
     D -->|held-out tests| E
     E -->|failing traces, training set only| O["Optimizer<br/>Nemotron 3 Ultra"]
     O -->|new spec version| T
+    E -->|stuck or crashed| H["Healer<br/>Nemotron 3 Ultra"]
+    H -->|repaired spec + bonus round| E
     E -->|target reached| S["Deploy<br/>Nebius Serverless Endpoint"]
 ```
 
 1. **Architect (Nemotron 3 Ultra)** turns the goal into a spec: the smallest team of agents that can do the job, a precise system prompt for each, which tools each may use, and which model tier each runs on. It is told to prefer the cheapest tier that works.
-2. **Toolsmith (Nemotron 3 Super)** writes any custom Python tools the Architect asked for, plus self-checks, and keeps fixing the code until the checks pass. Generated code never runs in the NemoForge process: each call is a fresh `python -I` subprocess with no network (`unshare -rn`), no API keys in its environment, CPU, memory and file-size limits, and a timeout.
+2. **Toolsmith (Nemotron 3 Super)** writes any custom Python tools the Architect asked for, plus self-checks, and keeps fixing the code until the checks pass. Generated code never runs in the NemoForge process: each call is a fresh `python -I` subprocess with no API keys in its environment, CPU, memory and file-size limits, and a timeout. On Linux hosts that allow `unshare -rn` it also has no network; the header chip says `tool sandbox offline` or `has network` (for example on Windows).
 3. **Test Designer (Nemotron 3 Ultra)** writes realistic test cases with pass criteria: typical requests, messy edge cases, and requests the system should refuse. A third of them are **held out**.
 4. **Evaluate.** The team runs every test on Nemotron (most agents on **Nano**), and **Super** grades each answer against its criteria. When Super fails an answer, **Ultra** gives a second opinion with Super's reason in front of it, so one harsh grade can't sink a good answer.
 5. **Optimizer (Nemotron 3 Ultra)** reads the full traces of the failing *training* tests, diagnoses the root cause and rewrites the design: prompts, tools, tiers or the agent line-up. It never sees the held-out tests, so the held-out score shows whether a fix generalises or just overfits.
 6. Steps 4 and 5 repeat until both scores pass the target (default 85%, set with `NF_PASS_THRESHOLD`) or the round limit is hit. The best version is kept.
-7. **Deploy.** The finished spec is packaged with the runtime into a container and deployed as a **Nebius Serverless Endpoint** with token auth, serving `POST /invoke` and a small web page.
+7. **Self-healing (Nemotron 3 Ultra).** If the build is still below target or crashed, the Healer reviews every round, finds the root cause and repairs the team, and a bonus round checks the repair (see [Self-healing builds](#self-healing-builds)).
+8. **Deploy.** The finished spec is packaged with the runtime into a container and deployed as a **Nebius Serverless Endpoint** with token auth, serving `POST /invoke` and a small web page.
 
 Every version of the spec is saved as JSON (`builds/<id>/spec_v1.json`, `spec_v2.json`, ...), so you can diff exactly what the optimizer changed.
 
@@ -41,8 +72,9 @@ Every version of the spec is saved as JSON (`builds/<id>/spec_v1.json`, `spec_v2
 | Role | Model | Why this tier |
 | --- | --- | --- |
 | Architect, Test Designer, Optimizer | Nemotron 3 Ultra | Few calls, each needing deep reasoning about design and failure causes |
+| Healer, second-opinion grader | Nemotron 3 Ultra | Root-cause analysis and fair re-grading of failed answers |
 | Toolsmith, Grader | Nemotron 3 Super | Code writing and careful judgement at moderate cost |
-| Built agents (default) | Nemotron 3 Nano | Most calls happen here, so speed and cost matter most |
+| Smart router, built agents (default) | Nemotron 3 Nano | Most calls happen here, so speed and cost matter most |
 
 - **Nebius Token Factory** serves all models through its OpenAI-compatible API. The dashboard shows calls and tokens per tier for every build.
 - **Nemotron reasoning switch**: every call sets Nemotron's `enable_thinking` chat template flag per tier. Ultra and Super reason step by step; Nano answers directly, so it stays fast and cheap. The **Nemotron reasoning** panel shows what Ultra and Super were thinking at each step (the Architect's design, the Optimizer's diagnosis), and the routing panel counts reasoning calls and tokens. Override with `NF_THINK_NANO`, `NF_THINK_SUPER` and `NF_THINK_ULTRA` (`1` or `0`). If an endpoint rejects the flag, NemoForge stops sending it and uses the model default.
@@ -55,12 +87,14 @@ Model IDs are set in `nemoforge/config.py` and can be overridden with `NF_MODEL_
 ## Run it
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 export NEBIUS_API_KEY=...      # Nebius Token Factory
 export TAVILY_API_KEY=...      # optional, enables web research tools
 python -m nemoforge serve        # open http://127.0.0.1:8000
 ```
+
+Type a goal and click **Build**, or press the microphone button to speak it (browsers with speech recognition, such as Chrome and Edge). The same button works in the playground.
 
 Instead of exporting keys in every terminal, you can put the same `KEY=value` lines in a `.env` file in the project folder. NemoForge reads it on start, and real environment variables still win. `.env` is git-ignored.
 
@@ -96,7 +130,7 @@ The router runs in every test during a build and in every playground or deployed
 
 NemoForge picks the smallest Nemotron model that can do each job: Ultra designs the agent team and gives a second opinion on failed tests, Super does the main work and grades answers, and Nano handles fast, everyday calls such as routing. The **Nemotron routing** panel on the home page shows how many calls and tokens went to each tier, and what the same tokens would have cost if every call had gone to Ultra. The numbers come from real token counts in your builds and the list prices in `nemoforge/config.py`.
 
-A build that stopped before it finished (for example because the server was restarted) is now shown as **Interrupted** instead of **Failed**. Interrupted and failed builds get a **Rebuild** button that puts the same goal back in the build box so you can start it again.
+A build that stopped before it finished (for example because the server was restarted) is shown as **Interrupted** instead of **Failed**. Interrupted and failed builds get a **Rebuild** button that puts the same goal back in the build box so you can start it again.
 
 ### Dashboard cards and observability logs
 
@@ -160,7 +194,7 @@ The root `Dockerfile` packages the dashboard. Deploy it the same way (container 
 pytest
 ```
 
-The unit tests use a scripted stand-in model to check the plumbing (JSON parsing, sandbox isolation, the runtime's tool loop, the build loop, the web API, access codes and restoring builds after a restart) without network access. Real builds always use Nemotron.
+All 31 unit tests use a scripted stand-in model to check the plumbing (JSON parsing, sandbox isolation, the runtime's tool loop, the build loop, the smart router, budgets, the Ultra second opinion, `.env` loading, the web API, access codes and restoring builds after a restart) without network access. They run against a temporary builds folder, so your own builds don't affect them. Real builds always use Nemotron.
 
 ## Project layout
 
@@ -168,17 +202,25 @@ The unit tests use a scripted stand-in model to check the plumbing (JSON parsing
 nemoforge/
   architect.py   Ultra: goal -> agent team spec
   toolsmith.py   Super: writes and self-tests custom tools
-  evals.py       Ultra writes tests; Super grades answers
+  evals.py       Ultra writes tests; Super grades, Ultra re-checks failures
   optimizer.py   Ultra: diagnoses failures and rewrites the spec
   forge.py       the build loop, with training / held-out split
+  healer.py      Ultra: repairs stuck or crashed builds
+  router.py      Nano: rates each request and picks the tier
+  spec.py        the agent team spec (plain JSON)
   runtime.py     runs a spec: agents in sequence with a JSON tool-call loop
   tools.py       built-in tools and the sandbox for generated code
-  llm.py         Nemotron tier router on Token Factory, token accounting
+  llm.py         Nemotron calls on Token Factory, reasoning switch, token accounting
+  config.py      settings, prices and the .env loader
+  events.py      live event stream for the dashboard
+  cli.py         build / run / deploy / serve commands
   server.py      web app API with live event streaming
   insights.py    observability log records, severities and dashboard KPIs
   serve.py       the server that gets deployed for one finished build
   deploy.py      container packaging and Nebius endpoint deployment
 web/index.html   the dashboard
+demo/batch_test.py  build 10 agents inside one budget
+tests/           31 unit tests with a scripted stand-in model
 ```
 
 ## License
