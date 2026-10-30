@@ -1016,6 +1016,28 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .owner, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .metric, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .pipe .node { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: var(--text); box-shadow: none; }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .metric b, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .metric strong, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .owner b, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .owner strong { color: var(--text); -webkit-text-fill-color: currentColor; }
 html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .spot { background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 10%, transparent), rgba(255,255,255,.02)); border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent); }
+/* Pro KPI tiles: flat dark glass, thin accent bar, no neon */
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-top: 2px solid var(--g); border-radius: 10px; box-shadow: none; animation: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi::before, html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi::after { display: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi * { color: var(--muted); text-shadow: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .grp { color: var(--g); letter-spacing: .1em; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .grp::before { box-shadow: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .val { color: #f1f5f9; text-shadow: none; font-family: var(--mono); font-weight: 600; animation: none; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .lbl { color: var(--text); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi.click:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); border-top-color: var(--g); box-shadow: none; transform: translateY(-1px); }
+/* Pro KPI colour: accent-tinted glass, fine grid, gradient bar, corner tick */
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi { position: relative; overflow: hidden; border-top: 0;
+  background:
+    linear-gradient(90deg, var(--g), color-mix(in srgb, var(--g) 30%, transparent) 70%, transparent) top left / 100% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 14px,
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 14px 100%,
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--g) 22%, transparent), transparent 60%),
+    rgba(10,14,18,.82);
+  border: 1px solid color-mix(in srgb, var(--g) 28%, rgba(255,255,255,.06)); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi::after { content: ""; display: block; position: absolute; right: 8px; top: 8px; width: 10px; height: 10px;
+  border-top: 1.5px solid var(--g); border-right: 1.5px solid var(--g); opacity: .8; }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi .val { color: color-mix(in srgb, var(--g) 40%, #ffffff); }
+html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="dark"]) .kpi.click:hover { border-color: color-mix(in srgb, var(--g) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--g) 35%, transparent), 0 12px 30px -18px var(--g); }
 </style>
 </head>
 <body>
@@ -1053,7 +1075,7 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
           <li><b>Architect</b> (Ultra) designs the team: agents, order, tools, model per agent.</li>
           <li><b>Toolsmith</b> (Super) writes each custom Python tool and checks it in a sandbox.</li>
           <li><b>Test designer</b> (Ultra) writes test cases; a third are held out and never shown to the optimizer.</li>
-          <li><b>Evaluate</b>: the team answers every test and a Super judge grades each answer.</li>
+          <li><b>Evaluate</b>: the team answers every test and a Super judge grades each answer. If it marks an answer as failed, Ultra gives a second opinion, so one harsh grade can't sink a good answer.</li>
           <li><b>Optimizer</b> (Ultra) reads the failures and fixes prompts, tools or tiers.</li>
           <li><b>Healer</b> (Ultra) steps in when the build is stuck or crashes, then a bonus round checks the repair.</li>
           <li>The best round ships. Try it in the playground or deploy it.</li></ol></details>
@@ -1062,9 +1084,10 @@ html[data-theme="robot"][data-theme][data-theme][data-theme]:not([data-theme="da
         <details><summary>Observability and severity</summary><p>Every input is a log record: build goals, graded tests and playground runs. <span class="sev critical">critical</span> crashes, <span class="sev high">high</span> weak held-out or big gaps, <span class="sev medium">medium</span> below target or interrupted, <span class="sev low">low</span> notes such as repairs, <span class="sev info">info</span> all good.</p></details>
         <details><summary>Agent memory</summary><p>Each agent remembers the lessons from its own build (what the Optimizer and Healer fixed) and its latest playground runs. Tick <b>Use memory</b> in the playground to give the team the 3 earlier runs most related to the new request, ranked by meaning with a Nebius embedding model, for example to follow up on open items from a related meeting.</p></details>
         <details><summary>Nemotron reasoning</summary><p>Every call sets Nemotron's reasoning switch per tier: Ultra and Super think step by step, Nano answers directly to stay fast and cheap. The Nemotron reasoning panel in a build shows what Ultra and Super were thinking.</p></details>
-        <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>.</p><pre>python -m nemoforge serve
+        <details><summary>Budget, settings and CLI</summary><p>The budget is a hard stop per build. Lite mode sends Ultra's jobs to Super. A build passes when both training and held-out scores reach the target (85% by default, <code>NF_PASS_THRESHOLD</code>). Settings: <code>NEBIUS_API_KEY</code>, <code>TAVILY_API_KEY</code>, <code>NF_PASS_THRESHOLD</code>, <code>NF_SMART_ROUTING</code>, <code>NF_HEAL_ROUNDS</code>, <code>NF_OWNER</code>. Put them in a <code>.env</code> file in the project folder, or set them in the terminal.</p><pre>python -m nemoforge serve
 python -m nemoforge build "goal" --budget 1
-python -m nemoforge run &lt;build-id&gt; "input"</pre></details>
+python -m nemoforge run &lt;build-id&gt; "input"
+python demo/batch_test.py --total 1</pre></details>
       </div>
     </aside>
     <section>

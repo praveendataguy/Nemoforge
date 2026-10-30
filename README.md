@@ -29,9 +29,9 @@ flowchart LR
 1. **Architect (Nemotron 3 Ultra)** turns the goal into a spec: the smallest team of agents that can do the job, a precise system prompt for each, which tools each may use, and which model tier each runs on. It is told to prefer the cheapest tier that works.
 2. **Toolsmith (Nemotron 3 Super)** writes any custom Python tools the Architect asked for, plus self-checks, and keeps fixing the code until the checks pass. Generated code never runs in the NemoForge process: each call is a fresh `python -I` subprocess with no network (`unshare -rn`), no API keys in its environment, CPU, memory and file-size limits, and a timeout.
 3. **Test Designer (Nemotron 3 Ultra)** writes realistic test cases with pass criteria: typical requests, messy edge cases, and requests the system should refuse. A third of them are **held out**.
-4. **Evaluate.** The team runs every test on Nemotron (most agents on **Nano**), and **Super** grades each answer against its criteria.
+4. **Evaluate.** The team runs every test on Nemotron (most agents on **Nano**), and **Super** grades each answer against its criteria. When Super fails an answer, **Ultra** gives a second opinion with Super's reason in front of it, so one harsh grade can't sink a good answer.
 5. **Optimizer (Nemotron 3 Ultra)** reads the full traces of the failing *training* tests, diagnoses the root cause and rewrites the design: prompts, tools, tiers or the agent line-up. It never sees the held-out tests, so the held-out score shows whether a fix generalises or just overfits.
-6. Steps 4 and 5 repeat until both scores pass the target (default 90%) or the round limit is hit. The best version is kept.
+6. Steps 4 and 5 repeat until both scores pass the target (default 85%, set with `NF_PASS_THRESHOLD`) or the round limit is hit. The best version is kept.
 7. **Deploy.** The finished spec is packaged with the runtime into a container and deployed as a **Nebius Serverless Endpoint** with token auth, serving `POST /invoke` and a small web page.
 
 Every version of the spec is saved as JSON (`builds/<id>/spec_v1.json`, `spec_v2.json`, ...), so you can diff exactly what the optimizer changed.
@@ -94,7 +94,7 @@ The router runs in every test during a build and in every playground or deployed
 
 ### Nemotron routing
 
-NemoForge picks the smallest Nemotron model that can do each job: Ultra designs the agent team and judges hard tests, Super does the main work, and Nano handles fast, everyday calls such as grading. The **Nemotron routing** panel on the home page shows how many calls and tokens went to each tier, and what the same tokens would have cost if every call had gone to Ultra. The numbers come from real token counts in your builds and the list prices in `nemoforge/config.py`.
+NemoForge picks the smallest Nemotron model that can do each job: Ultra designs the agent team and gives a second opinion on failed tests, Super does the main work and grades answers, and Nano handles fast, everyday calls such as routing. The **Nemotron routing** panel on the home page shows how many calls and tokens went to each tier, and what the same tokens would have cost if every call had gone to Ultra. The numbers come from real token counts in your builds and the list prices in `nemoforge/config.py`.
 
 A build that stopped before it finished (for example because the server was restarted) is now shown as **Interrupted** instead of **Failed**. Interrupted and failed builds get a **Rebuild** button that puts the same goal back in the build box so you can start it again.
 
@@ -105,6 +105,14 @@ The **agent registry** panel, above the cards, shows the owner (set `NF_OWNER`, 
 Below the agent team, ten cards summarise every build stored in `builds/`: volume (builds, model calls, tokens), quality (pass rate, average held-out score, tests graded), cost and speed (total spend, average build time) and risk (overfitting caught, high and critical alerts). Every number is computed from the recorded events, not estimated.
 
 The **Observability logs** button lists every input NemoForge handled as its own record: each build goal, each test case the shipped version was graded on, and each "Try the finished agent" run. Each record gets a severity (critical, high, medium, low, info) from fixed rules, and clicking it shows which rules fired. For example, a failed held-out test is high and a crashed build is critical. The same data is at `/api/logs` and `/api/stats`.
+
+### Batch test
+
+`python demo/batch_test.py` builds 10 agent teams (3 easy, 4 medium, 3 complex) inside one total budget, $1 by default. It shares what is left evenly across the builds still to run, prints a scorecard and saves it to `builds/batch_report.json`. The builds also appear in the dashboard. Use `--total 0.5` for a smaller budget, `--lite` to send Ultra's jobs to Super, and `--only easy` to run one difficulty.
+
+### Themes
+
+The swatches next to the logo switch the look. Robot is the default dark theme. GeForce, Plasma, Magma and Holo are colour palettes on top of it, and there are a few lighter themes too. Your choice is remembered in the browser.
 
 ### Long meetings (Microsoft Teams transcripts)
 
