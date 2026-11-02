@@ -36,6 +36,18 @@ def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default).strip()
 
 
+def _num(name: str, default: str, kind: type = float):
+    """Read a number from the environment; a typo like NF_BUDGET_USD=$0.50 falls back to the default instead of crashing."""
+    raw = _env(name, default).lstrip("$").strip()
+    try:
+        return kind(raw)
+    except ValueError:
+        import sys
+
+        print(f"nemoforge: ignoring {name}={raw!r} (not a number), using {default}", file=sys.stderr)
+        return kind(default)
+
+
 @dataclass(frozen=True)
 class Models:
     """Nemotron tiers on Nebius Token Factory. Override with env vars if the catalog IDs change."""
@@ -47,7 +59,7 @@ class Models:
 
 def _price(tier: str, default_in: float, default_out: float) -> tuple[float, float]:
     """USD per 1M tokens (input, output). Defaults are approximate list prices; override per tier."""
-    return (float(_env(f"NF_PRICE_{tier}_IN", str(default_in))), float(_env(f"NF_PRICE_{tier}_OUT", str(default_out))))
+    return (_num(f"NF_PRICE_{tier}_IN", str(default_in)), _num(f"NF_PRICE_{tier}_OUT", str(default_out)))
 
 
 @dataclass(frozen=True)
@@ -57,11 +69,11 @@ class Settings:
     tavily_api_key: str = field(default_factory=lambda: _env("TAVILY_API_KEY"))
     builds_dir: Path = field(default_factory=lambda: Path(_env("NF_BUILDS_DIR", "builds")))
     # Optimise until this share of eval cases pass, or until max_iterations rounds. 0.85 allows one miss in 8.
-    pass_threshold: float = field(default_factory=lambda: float(_env("NF_PASS_THRESHOLD", "0.85")))
-    max_iterations: int = field(default_factory=lambda: int(_env("NF_MAX_ITERATIONS", "4")))
+    pass_threshold: float = field(default_factory=lambda: _num("NF_PASS_THRESHOLD", "0.85"))
+    max_iterations: int = field(default_factory=lambda: _num("NF_MAX_ITERATIONS", "4", int))
     # Self-healing: bonus Healer rounds when a build is stuck below target, and rebuilds after a crash.
-    heal_rounds: int = field(default_factory=lambda: int(_env("NF_HEAL_ROUNDS", "1")))
-    heal_retries: int = field(default_factory=lambda: int(_env("NF_HEAL_RETRIES", "1")))
+    heal_rounds: int = field(default_factory=lambda: _num("NF_HEAL_ROUNDS", "1", int))
+    heal_retries: int = field(default_factory=lambda: _num("NF_HEAL_RETRIES", "1", int))
     # Smart routing: Nano rates each request before every agent runs and picks Nano, Super or Ultra.
     smart_routing: bool = field(default_factory=lambda: _env("NF_SMART_ROUTING", "1") in ("1", "true", "yes"))
     # Nemotron reasoning per tier: Ultra and Super think step by step before answering, Nano answers directly.
@@ -73,9 +85,9 @@ class Settings:
     # Agent memory recalls the most related earlier runs, ranked by a Nebius embedding model.
     semantic_memory: bool = field(default_factory=lambda: _env("NF_SEMANTIC_MEMORY", "1") in ("1", "true", "yes"))
     embed_model: str = field(default_factory=lambda: _env("NF_EMBED_MODEL", "Qwen/Qwen3-Embedding-8B"))
-    eval_cases: int = field(default_factory=lambda: int(_env("NF_EVAL_CASES", "8")))
-    tool_timeout: int = field(default_factory=lambda: int(_env("NF_TOOL_TIMEOUT", "20")))
-    max_agent_steps: int = field(default_factory=lambda: int(_env("NF_MAX_AGENT_STEPS", "6")))
+    eval_cases: int = field(default_factory=lambda: _num("NF_EVAL_CASES", "8", int))
+    tool_timeout: int = field(default_factory=lambda: _num("NF_TOOL_TIMEOUT", "20", int))
+    max_agent_steps: int = field(default_factory=lambda: _num("NF_MAX_AGENT_STEPS", "6", int))
     models: Models = field(default_factory=Models)
     prices: dict[str, tuple[float, float]] = field(
         default_factory=lambda: {
@@ -85,7 +97,7 @@ class Settings:
         }
     )
     # Hard stop for one build or request, in USD. 0 disables the cap.
-    budget_usd: float = field(default_factory=lambda: float(_env("NF_BUDGET_USD", "0.50")))
+    budget_usd: float = field(default_factory=lambda: _num("NF_BUDGET_USD", "0.50"))
     # Lite mode sends Ultra's jobs to Super: much cheaper, for trial credits.
     lite: bool = field(default_factory=lambda: _env("NF_LITE", "0") in ("1", "true", "yes"))
     # Shown as the owner of every agent in the dashboard's agent registry.

@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 import json
+import sys
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -98,26 +99,47 @@ class Registry:
             run_id = log.parent.name
             if run_id in self.runs:
                 continue
-            events = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines() if line.strip()]
-            if not events:
-                continue
-            done = next((e for e in reversed(events) if e["stage"] in ("done", "error")), None)
-            report = (done or {}).get("data", {}).get("report", {})
-            # No done or error event means the process stopped mid-build (e.g. the server was restarted).
-            status = "interrupted" if done is None else "failed" if done["stage"] == "error" else (
-                "passed" if (log.parent / "status").exists() and (log.parent / "status").read_text(encoding="utf-8").strip() == "passed" else "below_target"
-            )
-            run = Run(id=run_id, kind="build", target=events[0].get("data", {}).get("goal", run_id), status=status,
-                      created=events[0]["t"], events=events, usage=report.get("usage", {}), result=report)
-            self.runs[run_id] = run
             try:
-                n = int(run_id.split("-")[0])
-                self._counter = itertools.count(max(n + 1, next(self._counter)))
-            except ValueError:
-                pass
+                events = _read_events(log)
+                if not events:
+                    continue
+                self._restore(run_id, log, events)
+            except Exception as err:  # one damaged build must never stop the server from starting
+                print(f"nemoforge: skipped build {run_id} ({type(err).__name__}: {err})", file=sys.stderr)
+
+    def _restore(self, run_id: str, log: Path, events: list[dict[str, Any]]) -> None:
+        done = next((e for e in reversed(events) if e["stage"] in ("done", "error")), None)
+        report = (done or {}).get("data", {}).get("report", {})
+        # No done or error event means the process stopped mid-build (e.g. the server was restarted).
+        status = "interrupted" if done is None else "failed" if done["stage"] == "error" else (
+            "passed" if (log.parent / "status").exists() and (log.parent / "status").read_text(encoding="utf-8").strip() == "passed" else "below_target"
+        )
+        run = Run(id=run_id, kind="build", target=events[0].get("data", {}).get("goal", run_id), status=status,
+                  created=events[0]["t"], events=events, usage=report.get("usage", {}), result=report)
+        self.runs[run_id] = run
+        try:
+            n = int(run_id.split("-")[0])
+            self._counter = itertools.count(max(n + 1, next(self._counter)))
+        except ValueError:
+            pass
 
     def list(self) -> list[dict[str, Any]]:
         return [r.summary() for r in sorted(self.runs.values(), key=lambda r: r.created, reverse=True)]
+
+
+def _read_events(log: Path) -> list[dict[str, Any]]:
+    """Parse an events.jsonl, skipping lines a killed process left half written."""
+    events = []
+    for line in log.read_text(encoding="utf-8", errors="replace").splitlines():
+        if not line.strip():
+            continue
+        try:
+            e = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(e, dict) and "stage" in e:
+            events.append(e)
+    return events
 
 
 registry = Registry()
